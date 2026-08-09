@@ -4,12 +4,12 @@
 import { createClient } from '@supabase/supabase-js';
 
 // ============================================================
-// ENVIRONMENT VARIABLES
+// ENVIRONMENT VARIABLES WITH SAFETY CHECKS
 // ============================================================
 
-const SUPABASE_URL = process.env.SUPABASE_URL;
-const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+const SUPABASE_URL = process.env.SUPABASE_URL || null;
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || null;
+const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || null;
 
 // ============================================================
 // HELPERS
@@ -23,6 +23,22 @@ function logError(message, error) {
     console.error(`[ADMIN ERROR] ${message}`, error || '');
 }
 
+// Check if Supabase is configured
+function isSupabaseConfigured() {
+    return SUPABASE_URL && (SUPABASE_SERVICE_ROLE_KEY || SUPABASE_ANON_KEY);
+}
+
+// Get Supabase client
+function getSupabaseClient() {
+    if (!isSupabaseConfigured()) {
+        const missing = [];
+        if (!SUPABASE_URL) missing.push('SUPABASE_URL');
+        if (!SUPABASE_SERVICE_ROLE_KEY && !SUPABASE_ANON_KEY) missing.push('SUPABASE_SERVICE_ROLE_KEY or SUPABASE_ANON_KEY');
+        throw new Error('Supabase not configured. Missing: ' + missing.join(', '));
+    }
+    return createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY || SUPABASE_ANON_KEY);
+}
+
 // ============================================================
 // HANDLERS
 // ============================================================
@@ -34,7 +50,7 @@ async function handleConfig(req, res) {
     try {
         log('Config request received');
         
-        // Log environment variables status (without exposing values)
+        // Check environment variables
         const envStatus = {
             SUPABASE_URL: SUPABASE_URL ? '✅ Set' : '❌ Missing',
             SUPABASE_SERVICE_ROLE_KEY: SUPABASE_SERVICE_ROLE_KEY ? '✅ Set' : '❌ Missing',
@@ -42,26 +58,26 @@ async function handleConfig(req, res) {
         };
         log('Environment status:', envStatus);
 
-        // Check if environment variables are set
+        // If missing variables, return error but don't crash
         if (!SUPABASE_URL) {
             logError('SUPABASE_URL is missing');
-            return res.status(500).json({
+            return res.status(200).json({
                 success: false,
-                error: 'SUPABASE_URL environment variable is not set',
+                error: 'SUPABASE_URL environment variable is not set in Vercel',
                 debug: envStatus
             });
         }
 
-        if (!SUPABASE_SERVICE_ROLE_KEY && !SUPABASE_ANON_KEY) {
-            logError('Both SUPABASE_SERVICE_ROLE_KEY and SUPABASE_ANON_KEY are missing');
-            return res.status(500).json({
+        if (!SUPABASE_ANON_KEY && !SUPABASE_SERVICE_ROLE_KEY) {
+            logError('No Supabase key provided');
+            return res.status(200).json({
                 success: false,
-                error: 'No Supabase key provided. Set SUPABASE_SERVICE_ROLE_KEY or SUPABASE_ANON_KEY.',
+                error: 'No Supabase key provided. Set SUPABASE_ANON_KEY or SUPABASE_SERVICE_ROLE_KEY.',
                 debug: envStatus
             });
         }
 
-        // Use the anon key if service role key is not available
+        // Use anon key if available, otherwise service role key
         const anonKey = SUPABASE_ANON_KEY || SUPABASE_SERVICE_ROLE_KEY;
 
         log('Config returning successfully');
@@ -105,16 +121,19 @@ async function handleProfile(req, res) {
             });
         }
 
-        // Create Supabase client with service role (bypasses RLS)
-        if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-            logError('Supabase configuration missing for profile');
+        // Check Supabase configuration
+        if (!isSupabaseConfigured()) {
+            const missing = [];
+            if (!SUPABASE_URL) missing.push('SUPABASE_URL');
+            if (!SUPABASE_SERVICE_ROLE_KEY && !SUPABASE_ANON_KEY) missing.push('SUPABASE_SERVICE_ROLE_KEY or SUPABASE_ANON_KEY');
+            logError('Supabase not configured:', missing);
             return res.status(500).json({
                 success: false,
-                error: 'Supabase configuration missing'
+                error: 'Supabase configuration missing: ' + missing.join(', ')
             });
         }
 
-        const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+        const supabase = getSupabaseClient();
 
         log('Verifying user with token...');
         
@@ -202,6 +221,7 @@ async function handleProfile(req, res) {
 
                 log('Admin record updated successfully');
                 delete updatedAdmin.auth_user_id;
+                delete updatedAdmin.password_hash;
 
                 return res.status(200).json({
                     success: true,
@@ -256,15 +276,15 @@ async function handleApplications(req, res) {
 
         const token = authHeader.split(' ')[1];
         
-        if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-            logError('Supabase configuration missing for applications');
+        if (!isSupabaseConfigured()) {
+            logError('Supabase not configured');
             return res.status(500).json({
                 success: false,
                 error: 'Supabase configuration missing'
             });
         }
 
-        const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+        const supabase = getSupabaseClient();
 
         const { data: { user }, error: authError } = await supabase.auth.getUser(token);
         
@@ -356,15 +376,15 @@ async function handleReferralLinks(req, res) {
 
         const token = authHeader.split(' ')[1];
         
-        if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-            logError('Supabase configuration missing for referral links');
+        if (!isSupabaseConfigured()) {
+            logError('Supabase not configured');
             return res.status(500).json({
                 success: false,
                 error: 'Supabase configuration missing'
             });
         }
 
-        const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+        const supabase = getSupabaseClient();
 
         const { data: { user }, error: authError } = await supabase.auth.getUser(token);
         
@@ -435,15 +455,15 @@ async function handleCreateReferral(req, res) {
 
         const token = authHeader.split(' ')[1];
         
-        if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-            logError('Supabase configuration missing for create referral');
+        if (!isSupabaseConfigured()) {
+            logError('Supabase not configured');
             return res.status(500).json({
                 success: false,
                 error: 'Supabase configuration missing'
             });
         }
 
-        const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+        const supabase = getSupabaseClient();
 
         const { data: { user }, error: authError } = await supabase.auth.getUser(token);
         
@@ -541,15 +561,15 @@ async function handleUpdateStatus(req, res) {
 
         const token = authHeader.split(' ')[1];
         
-        if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-            logError('Supabase configuration missing for update status');
+        if (!isSupabaseConfigured()) {
+            logError('Supabase not configured');
             return res.status(500).json({
                 success: false,
                 error: 'Supabase configuration missing'
             });
         }
 
-        const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+        const supabase = getSupabaseClient();
 
         const { data: { user }, error: authError } = await supabase.auth.getUser(token);
         
@@ -673,27 +693,31 @@ export default async function handler(req, res) {
     }
 
     try {
-        const url = new URL(req.url, `http://${req.headers.host}`);
-        const pathname = url.pathname;
+        // Clean up the URL path for consistent routing
+        let pathname = req.url;
+        // Remove query parameters
+        if (pathname.includes('?')) {
+            pathname = pathname.split('?')[0];
+        }
 
         console.log(`📥 [ADMIN] ${req.method} ${pathname}`);
 
         let handlerFn = null;
 
         // Route based on exact path
-        if (pathname === '/api/admin/config') {
+        if (pathname === '/api/admin/config' || pathname === '/admin/config') {
             handlerFn = handleConfig;
-        } else if (pathname === '/api/admin/profile') {
+        } else if (pathname === '/api/admin/profile' || pathname === '/admin/profile') {
             handlerFn = handleProfile;
-        } else if (pathname === '/api/admin/applications') {
+        } else if (pathname === '/api/admin/applications' || pathname === '/admin/applications') {
             handlerFn = handleApplications;
-        } else if (pathname === '/api/admin/referral-links') {
+        } else if (pathname === '/api/admin/referral-links' || pathname === '/admin/referral-links') {
             if (req.method === 'GET') {
                 handlerFn = handleReferralLinks;
             } else if (req.method === 'POST') {
                 handlerFn = handleCreateReferral;
             }
-        } else if (pathname === '/api/admin/update-status') {
+        } else if (pathname === '/api/admin/update-status' || pathname === '/admin/update-status') {
             handlerFn = handleUpdateStatus;
         }
 
