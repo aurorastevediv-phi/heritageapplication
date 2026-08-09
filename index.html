@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+    <title>Heritage Program | Grants Application</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+        /* Additional landing page styles */
+        .trust-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50px;
+            font-size: 0.8rem;
+            backdrop-filter: blur(4px);
+        }
+        .trust-badge i {
+            color: #10b981;
+        }
+        .partnership-logos {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 40px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+        .partnership-logos img {
+            max-height: 60px;
+            width: auto;
+            filter: brightness(0) invert(1);
+            opacity: 0.8;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 30px;
+            margin: 40px 0;
+        }
+        .stat-card {
+            background: rgba(255,255,255,0.05);
+            padding: 30px 20px;
+            border-radius: 16px;
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .stat-card .number {
+            font-size: 2.5rem;
+            font-weight: 900;
+            display: block;
+            background: linear-gradient(135deg, #ffd700, #f59e0b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .stat-card .label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-top: 5px;
+        }
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin: 40px 0;
+        }
+        .feature-card {
+            background: var(--white);
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+        .feature-card i {
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 15px;
+        }
+        .feature-card h3 {
+            margin-bottom: 10px;
+        }
+        .feature-card p {
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+        .steps-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 30px;
+            margin: 40px 0;
+            position: relative;
+        }
+        .step-item {
+            text-align: center;
+            position: relative;
+        }
+        .step-number {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 0 auto 15px;
+        }
+        .step-item h4 {
+            margin-bottom: 5px;
+        }
+        .step-item p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+        .faq-container {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: left;
+        }
+        .faq-item {
+            background: var(--white);
+            border-radius: 12px;
+            margin-bottom: 15px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+            cursor: pointer;
+        }
+        .faq-item .question {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+        }
+        .faq-item .answer {
+            display: none;
+            margin-top: 10px;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+        .faq-item.active .answer {
+            display: block;
+        }
+        .faq-item .toggle-icon {
+            transition: transform 0.3s ease;
+        }
+        .faq-item.active .toggle-icon {
+            transform: rotate(180deg);
+        }
+        
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 15px;
+            }
+            .stat-card .number {
+                font-size: 1.8rem;
+            }
+            .partnership-logos {
+                gap: 20px;
+            }
+            .partnership-logos img {
+                max-height: 40px;
+            }
+        }
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+            .steps-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" role="status" aria-label="Loading">
+        <div class="loader">
+            <div class="loader-ring"></div>
+            <div class="loader-ring"></div>
+            <div class="loader-ring"></div>
+            <p id="loadingText">Loading...</p>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer" role="alert" aria-live="polite"></div>
+
+    <!-- ============================================================ -->
+    <!-- HEADER -->
+    <!-- ============================================================ -->
+    <header class="app-header" role="banner">
+        <div class="header-content">
+            <div class="logo-container">
+                <img src="/heritage-logo.png" alt="Heritage Program Logo" style="height: 40px; width: auto;" onerror="this.style.display='none'">
+                <div class="logo-text">
+                    <h1 id="headerTitle">Heritage Program</h1>
+                    <span id="headerSubtitle">Grants Application</span>
+                </div>
+            </div>
+            <div class="header-controls">
+                <div class="security-badge">
+                    <i class="fas fa-shield-halved" aria-hidden="true"></i>
+                    <span id="securityText">Secured</span>
+                </div>
+                <button class="lang-toggle" id="langToggle" aria-label="Toggle language">
+                    <span class="lang-flag" id="langFlag">🇺🇸</span>
+                    <span class="lang-text" id="langText">EN</span>
+                    <span class="lang-arrow"><i class="fas fa-chevron-down" aria-hidden="true"></i></span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- ============================================================ -->
+    <!-- HERO -->
+    <!-- ============================================================ -->
+    <section class="hero-section" aria-labelledby="heroTitle">
+        <div class="hero-content">
+            <div class="hero-badge" id="heroBadge"><i class="fas fa-gem" aria-hidden="true"></i> <span id="heroBadgeText">Official Grant Program 2026</span></div>
+            <h2 id="heroTitle">Apply for Grants Up to <span class="highlight-text">$1,000,000</span></h2>
+            <p id="heroDesc">Empowering households across USA, Canada, and Australia with financial support</p>
+            
+            <div class="partnership-logos">
+                <img src="/heritage.png" alt="Heritage Bank" onerror="this.style.display='none'">
+                <span style="color: rgba(255,255,255,0.6); font-size: 0.9rem;">In partnership with</span>
+                <img src="/heritage.png" alt="Partner" onerror="this.style.display='none'">
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <span class="number">$85M+</span>
+                    <span class="label" id="statFundedLabel">Granted to Communities</span>
+                </div>
+                <div class="stat-card">
+                    <span class="number">650K+</span>
+                    <span class="label" id="statUsersLabel">Users Served</span>
+                </div>
+                <div class="stat-card">
+                    <span class="number">3</span>
+                    <span class="label" id="statCountriesLabel">Countries</span>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin: 20px 0;">
+                <span class="trust-badge"><i class="fas fa-shield-halved"></i> Official Program</span>
+                <span class="trust-badge"><i class="fas fa-lock"></i> Secure Application</span>
+                <span class="trust-badge"><i class="fas fa-clock"></i> 24/7 Support</span>
+            </div>
+
+            <button class="btn btn-primary btn-large" id="scrollToForm">
+                <i class="fas fa-arrow-down" aria-hidden="true"></i> <span id="applyNowBtn">Apply Now</span>
+            </button>
+        </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- MAIN CONTENT -->
+    <!-- ============================================================ -->
+    <main class="main-content" role="main">
+
+        <!-- Features Section -->
+        <section style="padding: 40px 0;">
+            <h2 style="text-align: center; margin-bottom: 10px;" id="featuresTitle">What We Offer</h2>
+            <p style="text-align: center; color: var(--text-muted); margin-bottom: 30px;" id="featuresDesc">Financial support programs designed to empower individuals and families</p>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <i class="fas fa-house-chimney"></i>
+                    <h3 id="feature1Title">Household Support</h3>
+                    <p id="feature1Desc">Grants for home improvements, education, and family welfare</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-briefcase"></i>
+                    <h3 id="feature2Title">Business Development</h3>
+                    <p id="feature2Desc">Funding for small businesses and entrepreneurial ventures</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-graduation-cap"></i>
+                    <h3 id="feature3Title">Education & Training</h3>
+                    <p id="feature3Desc">Scholarships and training programs for career advancement</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-leaf"></i>
+                    <h3 id="feature4Title">Community Development</h3>
+                    <p id="feature4Desc">Projects that strengthen communities and promote sustainability</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- How It Works -->
+        <section style="padding: 40px 0; background: var(--secondary); border-radius: var(--radius); margin: 20px 0; padding: 40px;">
+            <h2 style="text-align: center; margin-bottom: 10px;" id="howItWorksTitle">How It Works</h2>
+            <p style="text-align: center; color: var(--text-muted); margin-bottom: 30px;" id="howItWorksDesc">Simple 3-step process to get started</p>
+            <div class="steps-container">
+                <div class="step-item">
+                    <div class="step-number">1</div>
+                    <h4 id="step1Title">Apply Online</h4>
+                    <p id="step1Desc">Complete our simple application form</p>
+                </div>
+                <div class="step-item">
+                    <div class="step-number">2</div>
+                    <h4 id="step2Title">Review Process</h4>
+                    <p id="step2Desc">Our team evaluates your application</p>
+                </div>
+                <div class="step-item">
+                    <div class="step-number">3</div>
+                    <h4 id="step3Title">Receive Funding</h4>
+                    <p id="step3Desc">Get approved and receive your grant</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- FAQ Section -->
+        <section style="padding: 40px 0;">
+            <h2 style="text-align: center; margin-bottom: 30px;" id="faqTitle">Frequently Asked Questions</h2>
+            <div class="faq-container">
+                <div class="faq-item">
+                    <div class="question">
+                        <span id="faq1Q">Who is eligible for the grant?</span>
+                        <span class="toggle-icon"><i class="fas fa-chevron-down"></i></span>
+                    </div>
+                    <div class="answer" id="faq1A">Individuals and families in USA, Canada, and Australia who meet the program requirements. Each grant program has specific eligibility criteria.</div>
+                </div>
+                <div class="faq-item">
+                    <div class="question">
+                        <span id="faq2Q">How long does the application process take?</span>
+                        <span class="toggle-icon"><i class="fas fa-chevron-down"></i></span>
+                    </div>
+                    <div class="answer" id="faq2A">The review process typically takes 5-10 business days. You'll receive a notification once a decision is made.</div>
+                </div>
+                <div class="faq-item">
+                    <div class="question">
+                        <span id="faq3Q">What documents do I need to apply?</span>
+                        <span class="toggle-icon"><i class="fas fa-chevron-down"></i></span>
+                    </div>
+                    <div class="answer" id="faq3A">You'll need a valid government-issued ID, proof of address, and any additional documents specific to your chosen grant program.</div>
+                </div>
+                <div class="faq-item">
+                    <div class="question">
+                        <span id="faq4Q">Can I apply for multiple grants?</span>
+                        <span class="toggle-icon"><i class="fas fa-chevron-down"></i></span>
+                    </div>
+                    <div class="answer" id="faq4A">Yes, you can apply for multiple grant programs as long as you meet the eligibility requirements for each.</div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ============================================================ -->
+    <!-- FOOTER -->
+    <!-- ============================================================ -->
+    <footer class="app-footer" role="contentinfo">
+        <div class="footer-content">
+            <div class="footer-brand">
+                <span class="footer-logo">🏛️ Heritage Program</span>
+                <small id="footerTagline">Building Wealth, Preserving Heritage</small>
+            </div>
+            <div class="footer-links">
+                <a href="#"><i class="fas fa-shield" aria-hidden="true"></i> <span id="privacyLink">Privacy Policy</span></a>
+                <a href="#"><i class="fas fa-file-contract" aria-hidden="true"></i> <span id="termsLink">Terms &amp; Conditions</span></a>
+                <a href="#"><i class="fas fa-envelope" aria-hidden="true"></i> <span id="contactLink">Contact Support</span></a>
+            </div>
+            <div class="footer-copy">
+                <span id="copyright">&copy; 2026 Heritage Program. All rights reserved.</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ============================================================ -->
+    <!-- JAVASCRIPT -->
+    <!-- ============================================================ -->
+    <script>
+        (function() {
+            'use strict';
+
+            // Simple language toggle for landing page
+            const translations = {
+                en: {
+                    headerTitle: 'Heritage Program',
+                    headerSubtitle: 'Grants Application',
+                    securityText: 'Secured',
+                    heroBadge: 'Official Grant Program 2026',
+                    heroTitle: 'Apply for Grants Up to ',
+                    heroDesc: 'Empowering households across USA, Canada, and Australia with financial support',
+                    statFundedLabel: 'Granted to Communities',
+                    statUsersLabel: 'Users Served',
+                    statCountriesLabel: 'Countries',
+                    applyNowBtn: 'Apply Now',
+                    featuresTitle: 'What We Offer',
+                    featuresDesc: 'Financial support programs designed to empower individuals and families',
+                    feature1Title: 'Household Support',
+                    feature1Desc: 'Grants for home improvements, education, and family welfare',
+                    feature2Title: 'Business Development',
+                    feature2Desc: 'Funding for small businesses and entrepreneurial ventures',
+                    feature3Title: 'Education & Training',
+                    feature3Desc: 'Scholarships and training programs for career advancement',
+                    feature4Title: 'Community Development',
+                    feature4Desc: 'Projects that strengthen communities and promote sustainability',
+                    howItWorksTitle: 'How It Works',
+                    howItWorksDesc: 'Simple 3-step process to get started',
+                    step1Title: 'Apply Online',
+                    step1Desc: 'Complete our simple application form',
+                    step2Title: 'Review Process',
+                    step2Desc: 'Our team evaluates your application',
+                    step3Title: 'Receive Funding',
+                    step3Desc: 'Get approved and receive your grant',
+                    faqTitle: 'Frequently Asked Questions',
+                    faq1Q: 'Who is eligible for the grant?',
+                    faq1A: 'Individuals and families in USA, Canada, and Australia who meet the program requirements. Each grant program has specific eligibility criteria.',
+                    faq2Q: 'How long does the application process take?',
+                    faq2A: 'The review process typically takes 5-10 business days. You\'ll receive a notification once a decision is made.',
+                    faq3Q: 'What documents do I need to apply?',
+                    faq3A: 'You\'ll need a valid government-issued ID, proof of address, and any additional documents specific to your chosen grant program.',
+                    faq4Q: 'Can I apply for multiple grants?',
+                    faq4A: 'Yes, you can apply for multiple grant programs as long as you meet the eligibility requirements for each.',
+                    footerTagline: 'Building Wealth, Preserving Heritage',
+                    privacyLink: 'Privacy Policy',
+                    termsLink: 'Terms & Conditions',
+                    contactLink: 'Contact Support',
+                    copyright: '© 2026 Heritage Program. All rights reserved.',
+                    loading: 'Loading...'
+                },
+                es: {
+                    headerTitle: 'Programa Heritage',
+                    headerSubtitle: 'Solicitud de Subvenciones',
+                    securityText: 'Asegurado',
+                    heroBadge: 'Programa Oficial de Subvenciones 2026',
+                    heroTitle: 'Solicite Subvenciones de Hasta ',
+                    heroDesc: 'Empoderando a hogares en EE.UU., Canadá y Australia con apoyo financiero',
+                    statFundedLabel: 'Otorgado a Comunidades',
+                    statUsersLabel: 'Usuarios Atendidos',
+                    statCountriesLabel: 'Países',
+                    applyNowBtn: 'Solicitar Ahora',
+                    featuresTitle: 'Lo Que Ofrecemos',
+                    featuresDesc: 'Programas de apoyo financiero diseñados para empoderar a individuos y familias',
+                    feature1Title: 'Apoyo para Hogares',
+                    feature1Desc: 'Subvenciones para mejoras del hogar, educación y bienestar familiar',
+                    feature2Title: 'Desarrollo Empresarial',
+                    feature2Desc: 'Financiamiento para pequeñas empresas y emprendimientos',
+                    feature3Title: 'Educación y Formación',
+                    feature3Desc: 'Becas y programas de formación para el avance profesional',
+                    feature4Title: 'Desarrollo Comunitario',
+                    feature4Desc: 'Proyectos que fortalecen comunidades y promueven la sostenibilidad',
+                    howItWorksTitle: 'Cómo Funciona',
+                    howItWorksDesc: 'Proceso simple de 3 pasos para comenzar',
+                    step1Title: 'Solicite en Línea',
+                    step1Desc: 'Complete nuestro formulario de solicitud simple',
+                    step2Title: 'Proceso de Revisión',
+                    step2Desc: 'Nuestro equipo evalúa su solicitud',
+                    step3Title: 'Reciba Financiamiento',
+                    step3Desc: 'Obtenga la aprobación y reciba su subvención',
+                    faqTitle: 'Preguntas Frecuentes',
+                    faq1Q: '¿Quién es elegible para la subvención?',
+                    faq1A: 'Individuos y familias en EE.UU., Canadá y Australia que cumplan con los requisitos del programa. Cada programa de subvención tiene criterios de elegibilidad específicos.',
+                    faq2Q: '¿Cuánto tiempo toma el proceso de solicitud?',
+                    faq2A: 'El proceso de revisión generalmente toma de 5 a 10 días hábiles. Recibirá una notificación una vez que se tome una decisión.',
+                    faq3Q: '¿Qué documentos necesito para solicitar?',
+                    faq3A: 'Necesitará una identificación oficial válida, comprobante de domicilio y cualquier documento adicional específico para su programa de subvención elegido.',
+                    faq4Q: '¿Puedo solicitar múltiples subvenciones?',
+                    faq4A: 'Sí, puede solicitar múltiples programas de subvención siempre que cumpla con los requisitos de elegibilidad para cada uno.',
+                    footerTagline: 'Construyendo Riqueza, Preservando el Patrimonio',
+                    privacyLink: 'Política de Privacidad',
+                    termsLink: 'Términos y Condiciones',
+                    contactLink: 'Contactar Soporte',
+                    copyright: '© 2026 Programa Heritage. Todos los derechos reservados.',
+                    loading: 'Cargando...'
+                }
+            };
+
+            let currentLang = 'en';
+
+            function detectLanguage() {
+                const saved = localStorage.getItem('heritage_lang');
+                if (saved === 'en' || saved === 'es') return saved;
+                const browserLang = navigator.language || navigator.languages?.[0] || 'en';
+                if (browserLang.startsWith('es')) return 'es';
+                return 'en';
+            }
+
+            function setLanguage(lang) {
+                currentLang = lang;
+                localStorage.setItem('heritage_lang', lang);
+                updateUI(lang);
+                updateLangToggle(lang);
+            }
+
+            function updateLangToggle(lang) {
+                const flag = document.getElementById('langFlag');
+                const text = document.getElementById('langText');
+                if (lang === 'es') {
+                    flag.textContent = '🇪🇸';
+                    text.textContent = 'ES';
+                } else {
+                    flag.textContent = '🇺🇸';
+                    text.textContent = 'EN';
+                }
+            }
+
+            function updateUI(lang) {
+                const t = translations[lang] || translations.en;
+                
+                document.getElementById('headerTitle').textContent = t.headerTitle;
+                document.getElementById('headerSubtitle').textContent = t.headerSubtitle;
+                document.getElementById('securityText').textContent = t.securityText;
+                document.getElementById('heroBadgeText').textContent = t.heroBadge;
+                document.getElementById('heroDesc').textContent = t.heroDesc;
+                document.getElementById('statFundedLabel').textContent = t.statFundedLabel;
+                document.getElementById('statUsersLabel').textContent = t.statUsersLabel;
+                document.getElementById('statCountriesLabel').textContent = t.statCountriesLabel;
+                document.getElementById('applyNowBtn').textContent = t.applyNowBtn;
+                document.getElementById('featuresTitle').textContent = t.featuresTitle;
+                document.getElementById('featuresDesc').textContent = t.featuresDesc;
+                document.getElementById('feature1Title').textContent = t.feature1Title;
+                document.getElementById('feature1Desc').textContent = t.feature1Desc;
+                document.getElementById('feature2Title').textContent = t.feature2Title;
+                document.getElementById('feature2Desc').textContent = t.feature2Desc;
+                document.getElementById('feature3Title').textContent = t.feature3Title;
+                document.getElementById('feature3Desc').textContent = t.feature3Desc;
+                document.getElementById('feature4Title').textContent = t.feature4Title;
+                document.getElementById('feature4Desc').textContent = t.feature4Desc;
+                document.getElementById('howItWorksTitle').textContent = t.howItWorksTitle;
+                document.getElementById('howItWorksDesc').textContent = t.howItWorksDesc;
+                document.getElementById('step1Title').textContent = t.step1Title;
+                document.getElementById('step1Desc').textContent = t.step1Desc;
+                document.getElementById('step2Title').textContent = t.step2Title;
+                document.getElementById('step2Desc').textContent = t.step2Desc;
+                document.getElementById('step3Title').textContent = t.step3Title;
+                document.getElementById('step3Desc').textContent = t.step3Desc;
+                document.getElementById('faqTitle').textContent = t.faqTitle;
+                document.getElementById('faq1Q').textContent = t.faq1Q;
+                document.getElementById('faq1A').textContent = t.faq1A;
+                document.getElementById('faq2Q').textContent = t.faq2Q;
+                document.getElementById('faq2A').textContent = t.faq2A;
+                document.getElementById('faq3Q').textContent = t.faq3Q;
+                document.getElementById('faq3A').textContent = t.faq3A;
+                document.getElementById('faq4Q').textContent = t.faq4Q;
+                document.getElementById('faq4A').textContent = t.faq4A;
+                document.getElementById('footerTagline').textContent = t.footerTagline;
+                document.getElementById('privacyLink').textContent = t.privacyLink;
+                document.getElementById('termsLink').textContent = t.termsLink;
+                document.getElementById('contactLink').textContent = t.contactLink;
+                document.getElementById('copyright').textContent = t.copyright;
+                document.getElementById('loadingText').textContent = t.loading;
+            }
+
+            // FAQ Toggle
+            document.querySelectorAll('.faq-item').forEach(item => {
+                item.querySelector('.question').addEventListener('click', function() {
+                    const wasActive = item.classList.contains('active');
+                    document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('active'));
+                    if (!wasActive) item.classList.add('active');
+                });
+            });
+
+            // Scroll to form
+            document.getElementById('scrollToForm').addEventListener('click', function() {
+                window.location.href = '/apply';
+            });
+
+            // Language toggle
+            document.getElementById('langToggle').addEventListener('click', function() {
+                const newLang = currentLang === 'en' ? 'es' : 'en';
+                setLanguage(newLang);
+            });
+
+            // Initialize
+            const detectedLang = detectLanguage();
+            setLanguage(detectedLang);
+
+            // Hide loading
+            setTimeout(() => {
+                document.getElementById('loadingOverlay').classList.add('hidden');
+            }, 1000);
+
+        })();
+    </script>
+</body>
+</html>
