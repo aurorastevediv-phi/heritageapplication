@@ -1,13 +1,15 @@
 // api/admin.js
-// Handles ALL admin functions: profile, applications, update-status
+// Handles ALL admin functions: config, profile, referral links, applications, update-status
 
 import { createClient } from '@supabase/supabase-js';
 
+// ============================================================
+// ENVIRONMENT VARIABLES
+// ============================================================
+
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-// Create Supabase client with service role (bypasses RLS)
-const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 // ============================================================
 // HELPERS
@@ -21,44 +23,56 @@ function logError(message, error) {
     console.error(`[ADMIN ERROR] ${message}`, error || '');
 }
 
-function getBaseUrl() {
-    const customDomain = process.env.CUSTOM_DOMAIN;
-    const projectUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL;
-    const vercelUrl = process.env.VERCEL_URL;
-    
-    if (customDomain) return customDomain;
-    if (projectUrl) return projectUrl;
-    if (vercelUrl) return vercelUrl;
-    return 'localhost:3000';
-}
-
 // ============================================================
 // HANDLERS
 // ============================================================
 
 // ============================================================
-// GET /config - Supabase config
+// GET /config - Supabase config (CRITICAL for admin login)
 // ============================================================
 async function handleConfig(req, res) {
     try {
         log('Config request received');
         
-        const supabaseUrl = process.env.SUPABASE_URL;
-        const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+        // Log environment variables status (without exposing values)
+        const envStatus = {
+            SUPABASE_URL: SUPABASE_URL ? '✅ Set' : '❌ Missing',
+            SUPABASE_SERVICE_ROLE_KEY: SUPABASE_SERVICE_ROLE_KEY ? '✅ Set' : '❌ Missing',
+            SUPABASE_ANON_KEY: SUPABASE_ANON_KEY ? '✅ Set' : '❌ Missing'
+        };
+        log('Environment status:', envStatus);
 
-        if (!supabaseUrl || !supabaseAnonKey) {
-            logError('Missing Supabase configuration');
+        // Check if environment variables are set
+        if (!SUPABASE_URL) {
+            logError('SUPABASE_URL is missing');
             return res.status(500).json({
                 success: false,
-                error: 'Supabase configuration missing'
+                error: 'SUPABASE_URL environment variable is not set',
+                debug: envStatus
             });
         }
 
+        if (!SUPABASE_SERVICE_ROLE_KEY && !SUPABASE_ANON_KEY) {
+            logError('Both SUPABASE_SERVICE_ROLE_KEY and SUPABASE_ANON_KEY are missing');
+            return res.status(500).json({
+                success: false,
+                error: 'No Supabase key provided. Set SUPABASE_SERVICE_ROLE_KEY or SUPABASE_ANON_KEY.',
+                debug: envStatus
+            });
+        }
+
+        // Use the anon key if service role key is not available
+        const anonKey = SUPABASE_ANON_KEY || SUPABASE_SERVICE_ROLE_KEY;
+
+        log('Config returning successfully');
+        log('Supabase URL:', SUPABASE_URL);
+
         return res.status(200).json({
             success: true,
-            supabaseUrl: supabaseUrl,
-            supabaseAnonKey: supabaseAnonKey
+            supabaseUrl: SUPABASE_URL,
+            supabaseAnonKey: anonKey
         });
+
     } catch (error) {
         logError('Config handler error:', error);
         return res.status(500).json({
@@ -84,18 +98,46 @@ async function handleProfile(req, res) {
         }
 
         const token = authHeader.split(' ')[1];
+        if (!token) {
+            return res.status(401).json({ 
+                success: false, 
+                error: 'Unauthorized - Invalid token' 
+            });
+        }
 
+        // Create Supabase client with service role (bypasses RLS)
+        if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+            logError('Supabase configuration missing for profile');
+            return res.status(500).json({
+                success: false,
+                error: 'Supabase configuration missing'
+            });
+        }
+
+        const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+        log('Verifying user with token...');
+        
         const { data: { user }, error: authError } = await supabase.auth.getUser(token);
         
-        if (authError || !user) {
+        if (authError) {
             logError('Auth error:', authError);
             return res.status(401).json({ 
                 success: false, 
-                error: 'Unauthorized - ' + (authError?.message || 'Invalid token')
+                error: 'Unauthorized - ' + authError.message 
+            });
+        }
+
+        if (!user) {
+            log('No user found from token');
+            return res.status(401).json({ 
+                success: false, 
+                error: 'Unauthorized - User not found' 
             });
         }
 
         log('User verified:', user.email);
+        log('User ID:', user.id);
 
         // Query the admins table
         const { data: admin, error: adminError } = await supabase
@@ -113,7 +155,10 @@ async function handleProfile(req, res) {
         }
 
         if (!admin) {
+            log('Admin not found for user ID:', user.id);
+            
             // Try to find by email as fallback
+            log('Trying to find admin by email:', user.email);
             const { data: adminByEmail, error: emailError } = await supabase
                 .from('admins')
                 .select('*')
@@ -125,7 +170,8 @@ async function handleProfile(req, res) {
             }
 
             if (adminByEmail) {
-                log('Found admin by email, updating auth_user_id...');
+                log('Found admin by email:', adminByEmail.email);
+                log('Updating auth_user_id to match...');
                 
                 const { error: updateError } = await supabase
                     .from('admins')
@@ -154,7 +200,9 @@ async function handleProfile(req, res) {
                     });
                 }
 
+                log('Admin record updated successfully');
                 delete updatedAdmin.auth_user_id;
+
                 return res.status(200).json({
                     success: true,
                     data: updatedAdmin
@@ -163,11 +211,20 @@ async function handleProfile(req, res) {
 
             return res.status(404).json({ 
                 success: false, 
-                error: 'Admin account not found. Please contact support.'
+                error: 'Admin account not found. Please contact support.',
+                debug: {
+                    user_id: user.id,
+                    user_email: user.email
+                }
             });
         }
 
+        log('Admin found:', admin.email);
+
+        // Remove sensitive data before sending
         delete admin.auth_user_id;
+        delete admin.password_hash;
+
         return res.status(200).json({
             success: true,
             data: admin
@@ -199,6 +256,16 @@ async function handleApplications(req, res) {
 
         const token = authHeader.split(' ')[1];
         
+        if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+            logError('Supabase configuration missing for applications');
+            return res.status(500).json({
+                success: false,
+                error: 'Supabase configuration missing'
+            });
+        }
+
+        const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
         const { data: { user }, error: authError } = await supabase.auth.getUser(token);
         
         if (authError || !user) {
@@ -289,6 +356,16 @@ async function handleReferralLinks(req, res) {
 
         const token = authHeader.split(' ')[1];
         
+        if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+            logError('Supabase configuration missing for referral links');
+            return res.status(500).json({
+                success: false,
+                error: 'Supabase configuration missing'
+            });
+        }
+
+        const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
         const { data: { user }, error: authError } = await supabase.auth.getUser(token);
         
         if (authError || !user) {
@@ -358,6 +435,16 @@ async function handleCreateReferral(req, res) {
 
         const token = authHeader.split(' ')[1];
         
+        if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+            logError('Supabase configuration missing for create referral');
+            return res.status(500).json({
+                success: false,
+                error: 'Supabase configuration missing'
+            });
+        }
+
+        const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
         const { data: { user }, error: authError } = await supabase.auth.getUser(token);
         
         if (authError || !user) {
@@ -385,7 +472,9 @@ async function handleCreateReferral(req, res) {
         const { referral_name, referral_amount } = req.body || {};
         
         // Generate unique link identifier
-        const linkId = 'REF-' + Date.now().toString(36) + '-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+        const linkId = 'REF-' + Date.now().toString(36).toUpperCase() + '-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+
+        log('Generating referral link:', linkId);
 
         const { data: newLink, error: linkError } = await supabase
             .from('referral_links')
@@ -408,9 +497,10 @@ async function handleCreateReferral(req, res) {
             });
         }
 
-        const baseUrl = getBaseUrl();
+        // Build the full URL
         const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
-        const linkUrl = `${protocol}://${baseUrl}/application.html?ref=${linkId}`;
+        const host = req.headers.host || 'localhost:3000';
+        const linkUrl = `${protocol}://${host}/application.html?ref=${linkId}`;
 
         log('Generated referral link:', linkUrl);
 
@@ -451,6 +541,16 @@ async function handleUpdateStatus(req, res) {
 
         const token = authHeader.split(' ')[1];
         
+        if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+            logError('Supabase configuration missing for update status');
+            return res.status(500).json({
+                success: false,
+                error: 'Supabase configuration missing'
+            });
+        }
+
+        const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
         const { data: { user }, error: authError } = await supabase.auth.getUser(token);
         
         if (authError || !user) {
@@ -559,97 +659,6 @@ async function handleUpdateStatus(req, res) {
 }
 
 // ============================================================
-// GET /referral-stats - Get referral statistics
-// ============================================================
-async function handleReferralStats(req, res) {
-    try {
-        log('Referral stats request received');
-        
-        const authHeader = req.headers.authorization;
-        if (!authHeader || !authHeader.startsWith('Bearer ')) {
-            return res.status(401).json({ 
-                success: false, 
-                error: 'Unauthorized - No token provided' 
-            });
-        }
-
-        const token = authHeader.split(' ')[1];
-        
-        const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-        
-        if (authError || !user) {
-            logError('Auth error:', authError);
-            return res.status(401).json({ 
-                success: false, 
-                error: 'Unauthorized' 
-            });
-        }
-
-        const { data: admin, error: adminError } = await supabase
-            .from('admins')
-            .select('id')
-            .eq('auth_user_id', user.id)
-            .single();
-
-        if (adminError || !admin) {
-            logError('Admin not found:', adminError);
-            return res.status(404).json({ 
-                success: false, 
-                error: 'Admin not found' 
-            });
-        }
-
-        // Get total applicants referred
-        const { count: totalApplicants, error: countError } = await supabase
-            .from('grants_applications')
-            .select('*', { count: 'exact', head: true })
-            .eq('assigned_admin_id', admin.id);
-
-        if (countError) {
-            logError('Count error:', countError);
-        }
-
-        // Get pending count
-        const { count: pendingCount, error: pendingError } = await supabase
-            .from('grants_applications')
-            .select('*', { count: 'exact', head: true })
-            .eq('assigned_admin_id', admin.id)
-            .eq('status', 'pending');
-
-        if (pendingError) {
-            logError('Pending count error:', pendingError);
-        }
-
-        // Get approved count
-        const { count: approvedCount, error: approvedError } = await supabase
-            .from('grants_applications')
-            .select('*', { count: 'exact', head: true })
-            .eq('assigned_admin_id', admin.id)
-            .in('status', ['approved', 'paid']);
-
-        if (approvedError) {
-            logError('Approved count error:', approvedError);
-        }
-
-        return res.status(200).json({
-            success: true,
-            data: {
-                total_applicants: totalApplicants || 0,
-                pending_count: pendingCount || 0,
-                approved_count: approvedCount || 0
-            }
-        });
-
-    } catch (error) {
-        logError('Referral stats handler error:', error);
-        return res.status(500).json({
-            success: false,
-            error: error.message || 'Internal server error'
-        });
-    }
-}
-
-// ============================================================
 // MAIN HANDLER
 // ============================================================
 
@@ -686,8 +695,6 @@ export default async function handler(req, res) {
             }
         } else if (pathname === '/api/admin/update-status') {
             handlerFn = handleUpdateStatus;
-        } else if (pathname === '/api/admin/referral-stats') {
-            handlerFn = handleReferralStats;
         }
 
         if (!handlerFn) {
