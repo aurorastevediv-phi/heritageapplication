@@ -1,0 +1,1842 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
+    <title>Heritage Program | Admin Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+        /* ============================================================
+           ADMIN DASHBOARD - MODERN UI
+           ============================================================ */
+        
+        :root {
+            --admin-primary: #1a73e8;
+            --admin-primary-dark: #1557b0;
+            --admin-primary-light: #e8f0fe;
+            --admin-success: #0f9d58;
+            --admin-warning: #f4b400;
+            --admin-danger: #d93025;
+            --admin-gray: #5f6368;
+            --admin-light-gray: #f1f3f4;
+            --admin-border: #dadce0;
+            --admin-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            --admin-radius: 12px;
+            --admin-transition: all 0.3s ease;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        /* Login Page */
+        .admin-login-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #e8f0fe 0%, #d2e3fc 100%);
+            padding: 20px;
+        }
+        .admin-login-box {
+            background: white;
+            border-radius: var(--admin-radius);
+            padding: 48px 40px;
+            max-width: 420px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+        }
+        .admin-login-box .logo {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        .admin-login-box .logo h2 {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: #202124;
+        }
+        .admin-login-box .logo h2 i {
+            color: var(--admin-primary);
+            margin-right: 8px;
+        }
+        .admin-login-box .logo p {
+            color: var(--admin-gray);
+            font-size: 0.9rem;
+            margin-top: 4px;
+        }
+        .admin-login-box .form-group {
+            margin-bottom: 20px;
+        }
+        .admin-login-box .form-group label {
+            display: block;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: var(--admin-gray);
+            margin-bottom: 6px;
+        }
+        .admin-login-box .form-control {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--admin-border);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: var(--admin-transition);
+            background: white;
+        }
+        .admin-login-box .form-control:focus {
+            outline: none;
+            border-color: var(--admin-primary);
+            box-shadow: 0 0 0 4px rgba(26, 115, 232, 0.1);
+        }
+        .admin-login-box .btn-primary {
+            width: 100%;
+            padding: 14px;
+            background: var(--admin-primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--admin-transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .admin-login-box .btn-primary:hover {
+            background: var(--admin-primary-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(26, 115, 232, 0.3);
+        }
+        .admin-login-box .btn-primary:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .admin-login-box .footer-text {
+            text-align: center;
+            margin-top: 20px;
+            color: var(--admin-gray);
+            font-size: 0.75rem;
+        }
+        .admin-login-box .debug-info {
+            background: var(--admin-light-gray);
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-top: 16px;
+            font-size: 0.75rem;
+            color: var(--admin-gray);
+            display: none;
+            border-left: 4px solid var(--admin-warning);
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .admin-login-box .debug-info.visible {
+            display: block;
+        }
+        .admin-login-box .debug-info code {
+            display: block;
+            white-space: pre-wrap;
+            word-break: break-all;
+            font-family: monospace;
+            font-size: 0.7rem;
+            color: #202124;
+            margin-top: 4px;
+        }
+
+        /* Dashboard Layout */
+        .admin-dashboard {
+            display: none;
+            min-height: 100vh;
+            background: var(--admin-light-gray);
+        }
+        .admin-dashboard.active {
+            display: block;
+        }
+
+        /* Top Bar */
+        .admin-topbar {
+            background: white;
+            padding: 16px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--admin-border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: var(--admin-shadow);
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .admin-topbar .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: #202124;
+        }
+        .admin-topbar .brand i {
+            color: var(--admin-primary);
+        }
+        .admin-topbar .brand span {
+            font-size: 0.75rem;
+            font-weight: 400;
+            color: var(--admin-gray);
+        }
+        .admin-topbar .user-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .admin-topbar .user-info .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--admin-primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+        .admin-topbar .user-info .details {
+            text-align: right;
+            line-height: 1.3;
+        }
+        .admin-topbar .user-info .details .name {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: #202124;
+        }
+        .admin-topbar .user-info .details .email {
+            font-size: 0.75rem;
+            color: var(--admin-gray);
+        }
+        .admin-topbar .btn-logout {
+            background: var(--admin-danger);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.8rem;
+            transition: var(--admin-transition);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .admin-topbar .btn-logout:hover {
+            opacity: 0.85;
+            transform: scale(0.97);
+        }
+
+        /* Dashboard Content */
+        .admin-content {
+            padding: 24px 32px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Stats Cards */
+        .admin-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .admin-stat-card {
+            background: white;
+            border-radius: var(--admin-radius);
+            padding: 20px 24px;
+            box-shadow: var(--admin-shadow);
+            transition: var(--admin-transition);
+        }
+        .admin-stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+        }
+        .admin-stat-card .number {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #202124;
+        }
+        .admin-stat-card .label {
+            font-size: 0.85rem;
+            color: var(--admin-gray);
+            margin-top: 4px;
+        }
+        .admin-stat-card .icon {
+            float: right;
+            font-size: 2rem;
+            opacity: 0.2;
+        }
+        .admin-stat-card.primary .icon { color: var(--admin-primary); }
+        .admin-stat-card.success .icon { color: var(--admin-success); }
+        .admin-stat-card.warning .icon { color: var(--admin-warning); }
+        .admin-stat-card.danger .icon { color: var(--admin-danger); }
+
+        /* Referral Section */
+        .admin-referral-section {
+            background: linear-gradient(135deg, var(--admin-primary), var(--admin-primary-dark));
+            color: white;
+            border-radius: var(--admin-radius);
+            padding: 24px 32px;
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+        .admin-referral-section .stat {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        .admin-referral-section .stat .number {
+            font-size: 2.5rem;
+            font-weight: 900;
+            display: block;
+        }
+        .admin-referral-section .btn-generate {
+            background: white;
+            color: var(--admin-primary);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: var(--admin-transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .admin-referral-section .btn-generate:hover {
+            transform: scale(1.03);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+        }
+        .admin-referral-section .btn-generate:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Generate Form */
+        .admin-generate-form {
+            background: white;
+            border-radius: var(--admin-radius);
+            padding: 20px 24px;
+            margin-bottom: 24px;
+            box-shadow: var(--admin-shadow);
+            display: none;
+            animation: slideDown 0.3s ease;
+        }
+        .admin-generate-form.active {
+            display: block;
+        }
+        .admin-generate-form .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        .admin-generate-form .form-group {
+            margin-bottom: 0;
+        }
+        .admin-generate-form .form-group label {
+            display: block;
+            font-weight: 600;
+            font-size: 0.8rem;
+            color: var(--admin-gray);
+            margin-bottom: 4px;
+        }
+        .admin-generate-form .form-control {
+            width: 100%;
+            padding: 10px 14px;
+            border: 2px solid var(--admin-border);
+            border-radius: 6px;
+            font-size: 0.9rem;
+            transition: var(--admin-transition);
+        }
+        .admin-generate-form .form-control:focus {
+            outline: none;
+            border-color: var(--admin-primary);
+            box-shadow: 0 0 0 4px rgba(26, 115, 232, 0.1);
+        }
+        .admin-generate-form .btn-submit {
+            padding: 10px 24px;
+            background: var(--admin-success);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: var(--admin-transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .admin-generate-form .btn-submit:hover {
+            background: #0b8043;
+        }
+        .admin-generate-form .btn-cancel {
+            padding: 10px 24px;
+            background: var(--admin-light-gray);
+            color: var(--admin-gray);
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: var(--admin-transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .admin-generate-form .btn-cancel:hover {
+            background: var(--admin-border);
+        }
+        .admin-generate-form .form-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+
+        /* Generated Link */
+        .admin-generated-link {
+            background: var(--admin-primary-light);
+            border: 2px solid var(--admin-primary);
+            border-radius: var(--admin-radius);
+            padding: 16px 20px;
+            margin-bottom: 24px;
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .admin-generated-link.active {
+            display: flex;
+        }
+        .admin-generated-link .link-text {
+            font-family: monospace;
+            font-size: 0.85rem;
+            color: var(--admin-primary);
+            word-break: break-all;
+            flex: 1;
+        }
+        .admin-generated-link .btn-group {
+            display: flex;
+            gap: 8px;
+        }
+        .admin-generated-link .btn-group .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: var(--admin-transition);
+        }
+        .admin-generated-link .btn-group .btn-copy {
+            background: var(--admin-primary);
+            color: white;
+        }
+        .admin-generated-link .btn-group .btn-copy:hover {
+            background: var(--admin-primary-dark);
+        }
+        .admin-generated-link .btn-group .btn-close {
+            background: var(--admin-light-gray);
+            color: var(--admin-gray);
+        }
+        .admin-generated-link .btn-group .btn-close:hover {
+            background: var(--admin-border);
+        }
+
+        /* Section Title */
+        .admin-section-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #202124;
+            margin: 24px 0 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .admin-section-title i {
+            color: var(--admin-primary);
+        }
+
+        /* Table - Modern */
+        .admin-table-wrapper {
+            background: white;
+            border-radius: var(--admin-radius);
+            overflow: hidden;
+            box-shadow: var(--admin-shadow);
+            margin-bottom: 24px;
+        }
+        .admin-table-wrapper .table-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--admin-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .admin-table-wrapper .table-header .count {
+            font-size: 0.85rem;
+            color: var(--admin-gray);
+        }
+        .admin-table-wrapper .table-header .count strong {
+            color: #202124;
+        }
+        .admin-table-scroll {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        .admin-table-scroll table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+        .admin-table-scroll th {
+            text-align: left;
+            padding: 12px 16px;
+            background: var(--admin-light-gray);
+            font-weight: 600;
+            color: var(--admin-gray);
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid var(--admin-border);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .admin-table-scroll td {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--admin-border);
+            vertical-align: middle;
+        }
+        .admin-table-scroll tr:last-child td {
+            border-bottom: none;
+        }
+        .admin-table-scroll tr:hover td {
+            background: var(--admin-primary-light);
+        }
+
+        /* Status Badge */
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 9999px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            display: inline-block;
+            cursor: pointer;
+            border: none;
+            transition: var(--admin-transition);
+        }
+        .status-badge:hover {
+            transform: scale(1.05);
+        }
+        .status-pending { background: #fef3c7; color: #92400e; }
+        .status-approved { background: #d1fae5; color: #065f46; }
+        .status-rejected { background: #fee2e2; color: #991b1b; }
+        .status-paid { background: #dbeafe; color: #1e40af; }
+
+        /* Status Dropdown */
+        .status-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        .status-dropdown .dropdown-menu {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            min-width: 140px;
+            z-index: 50;
+            overflow: hidden;
+            padding: 4px 0;
+        }
+        .status-dropdown .dropdown-menu.active {
+            display: block;
+            animation: slideDown 0.2s ease;
+        }
+        .status-dropdown .dropdown-menu button {
+            display: block;
+            width: 100%;
+            padding: 8px 16px;
+            border: none;
+            background: none;
+            text-align: left;
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--admin-transition);
+            color: #202124;
+        }
+        .status-dropdown .dropdown-menu button:hover {
+            background: var(--admin-primary-light);
+        }
+        .status-dropdown .dropdown-menu button .dot {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .dot-pending { background: #f59e0b; }
+        .dot-approved { background: #10b981; }
+        .dot-rejected { background: #ef4444; }
+        .dot-paid { background: #3b82f6; }
+
+        /* Applicant Details Expand */
+        .applicant-details-row {
+            display: none;
+            background: var(--admin-light-gray);
+        }
+        .applicant-details-row.active {
+            display: table-row;
+        }
+        .applicant-details-row td {
+            padding: 16px 20px !important;
+        }
+        .applicant-details-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px 24px;
+        }
+        .applicant-details-grid .detail-item {
+            padding: 6px 0;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+        .applicant-details-grid .detail-item .label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            color: var(--admin-gray);
+            font-weight: 600;
+        }
+        .applicant-details-grid .detail-item .value {
+            font-weight: 500;
+            color: #202124;
+            word-break: break-word;
+        }
+        .applicant-details-grid .detail-item .value.password {
+            font-family: monospace;
+            font-size: 0.8rem;
+            background: var(--admin-light-gray);
+            padding: 2px 8px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+
+        /* Expand Toggle */
+        .expand-toggle {
+            cursor: pointer;
+            transition: var(--admin-transition);
+            color: var(--admin-gray);
+            background: none;
+            border: none;
+            font-size: 1rem;
+        }
+        .expand-toggle:hover {
+            color: var(--admin-primary);
+        }
+        .expand-toggle.expanded {
+            transform: rotate(180deg);
+        }
+
+        /* Clickable Row */
+        .clickable-row {
+            cursor: pointer;
+        }
+        .clickable-row:hover td {
+            background: var(--admin-primary-light);
+        }
+
+        /* Spinner */
+        .spinner {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+            vertical-align: middle;
+        }
+        .spinner-dark {
+            border: 2px solid rgba(0,0,0,0.1);
+            border-top-color: var(--admin-primary);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 48px 20px;
+            color: var(--admin-gray);
+        }
+        .empty-state i {
+            font-size: 3rem;
+            color: var(--admin-border);
+            display: block;
+            margin-bottom: 12px;
+        }
+        .empty-state p {
+            font-size: 0.95rem;
+        }
+
+        /* Toast */
+        #toastContainer {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-width: 400px;
+            width: 100%;
+        }
+        .toast {
+            padding: 14px 18px;
+            border-radius: 8px;
+            background: white;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            animation: slideIn 0.4s ease;
+            border-left: 4px solid var(--admin-primary);
+        }
+        .toast-success { border-left-color: var(--admin-success); }
+        .toast-error { border-left-color: var(--admin-danger); }
+        .toast-warning { border-left-color: var(--admin-warning); }
+        .toast-info { border-left-color: var(--admin-primary); }
+        .toast-success i { color: var(--admin-success); }
+        .toast-error i { color: var(--admin-danger); }
+        .toast-warning i { color: var(--admin-warning); }
+        .toast-info i { color: var(--admin-primary); }
+        .toast-exit {
+            animation: slideOut 0.3s ease forwards;
+        }
+
+        /* Animations */
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(40px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes slideOut {
+            from { opacity: 1; transform: translateX(0); }
+            to { opacity: 0; transform: translateX(40px); }
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .admin-content { padding: 16px; }
+            .admin-topbar { padding: 12px 16px; }
+            .admin-topbar .brand { font-size: 1rem; }
+            .admin-stats { grid-template-columns: 1fr 1fr; gap: 10px; }
+            .admin-stat-card { padding: 14px 16px; }
+            .admin-stat-card .number { font-size: 1.5rem; }
+            .admin-referral-section { flex-direction: column; text-align: center; padding: 20px; }
+            .admin-referral-section .stat .number { font-size: 2rem; }
+            .admin-generate-form .form-row { grid-template-columns: 1fr; }
+            .admin-generated-link { flex-direction: column; text-align: center; }
+            .admin-generated-link .btn-group { width: 100%; justify-content: center; }
+            .admin-login-box { padding: 32px 20px; }
+            .admin-table-scroll table { font-size: 0.75rem; }
+            .admin-table-scroll th, .admin-table-scroll td { padding: 8px 10px; }
+            .applicant-details-grid { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 480px) {
+            .admin-stats { grid-template-columns: 1fr; }
+            .admin-topbar .user-info .details { display: none; }
+            .admin-topbar .btn-logout span { display: none; }
+        }
+
+        /* Loading Overlay */
+        #loadingOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 99999;
+            transition: opacity 0.6s ease;
+        }
+        #loadingOverlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        #loadingOverlay .loader {
+            text-align: center;
+        }
+        #loadingOverlay .loader-ring {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--admin-border);
+            border-radius: 50%;
+            border-top-color: var(--admin-primary);
+            animation: spin 1s linear infinite;
+            margin: 0 4px;
+        }
+        #loadingOverlay .loader-ring:nth-child(2) {
+            width: 32px;
+            height: 32px;
+            animation-duration: 0.8s;
+            border-top-color: var(--admin-primary-light);
+        }
+        #loadingOverlay .loader-ring:nth-child(3) {
+            width: 24px;
+            height: 24px;
+            animation-duration: 0.6s;
+        }
+        #loadingOverlay .loader p {
+            margin-top: 16px;
+            color: var(--admin-gray);
+            font-weight: 500;
+            font-size: 0.85rem;
+        }
+
+        /* Referral Source Badge */
+        .source-badge {
+            font-size: 0.6rem;
+            padding: 2px 8px;
+            border-radius: 9999px;
+            font-weight: 600;
+            display: inline-block;
+        }
+        .source-referral {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        .source-public {
+            background: #f1f3f4;
+            color: #5f6368;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay">
+        <div class="loader">
+            <div class="loader-ring"></div>
+            <div class="loader-ring"></div>
+            <div class="loader-ring"></div>
+            <p>Loading Dashboard...</p>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer"></div>
+
+    <!-- ============================================================ -->
+    <!-- LOGIN SECTION -->
+    <!-- ============================================================ -->
+    <div id="loginSection" class="admin-login-container">
+        <div class="admin-login-box">
+            <div class="logo">
+                <h2><i class="fas fa-shield-halved"></i> Heritage Program</h2>
+                <p>Admin Dashboard</p>
+            </div>
+            <form id="loginForm" novalidate>
+                <div class="form-group">
+                    <label for="loginEmail">Email Address</label>
+                    <input type="email" id="loginEmail" class="form-control" placeholder="admin@application.com" required autocomplete="email">
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">Password</label>
+                    <input type="password" id="loginPassword" class="form-control" placeholder="Enter your password" required autocomplete="current-password">
+                </div>
+                <button type="submit" class="btn-primary" id="loginBtn">
+                    <i class="fas fa-sign-in-alt"></i> Sign In
+                </button>
+            </form>
+            <p class="footer-text">Secure admin access only</p>
+            <div class="debug-info" id="debugInfo">
+                <strong>🔍 Debug Info:</strong>
+                <code id="debugContent">Loading...</code>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- DASHBOARD SECTION -->
+    <!-- ============================================================ -->
+    <div id="dashboardSection" class="admin-dashboard">
+
+        <!-- Top Bar -->
+        <div class="admin-topbar">
+            <div class="brand">
+                <i class="fas fa-gem"></i>
+                Heritage Admin
+                <span>| Referral Dashboard</span>
+            </div>
+            <div class="user-info">
+                <div class="details">
+                    <div class="name" id="adminName">Admin Name</div>
+                    <div class="email" id="adminEmail">admin@email.com</div>
+                </div>
+                <div class="avatar" id="adminAvatar">A</div>
+                <button class="btn-logout" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i> <span>Logout</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="admin-content">
+
+            <!-- Stats -->
+            <div class="admin-stats">
+                <div class="admin-stat-card primary">
+                    <i class="fas fa-users icon"></i>
+                    <div class="number" id="totalApplicants">0</div>
+                    <div class="label">Total Referred</div>
+                </div>
+                <div class="admin-stat-card warning">
+                    <i class="fas fa-clock icon"></i>
+                    <div class="number" id="pendingCount">0</div>
+                    <div class="label">Pending Review</div>
+                </div>
+                <div class="admin-stat-card success">
+                    <i class="fas fa-check-circle icon"></i>
+                    <div class="number" id="approvedCount">0</div>
+                    <div class="label">Approved / Paid</div>
+                </div>
+                <div class="admin-stat-card danger">
+                    <i class="fas fa-link icon"></i>
+                    <div class="number" id="totalLinks">0</div>
+                    <div class="label">Referral Links</div>
+                </div>
+            </div>
+
+            <!-- Referral Section -->
+            <div class="admin-referral-section">
+                <div>
+                    <div class="stat">
+                        <span class="number" id="referralCount">0</span>
+                        Referral Links Created
+                    </div>
+                </div>
+                <button class="btn-generate" id="toggleGenerateBtn">
+                    <i class="fas fa-plus-circle"></i> Generate Referral Link
+                </button>
+            </div>
+
+            <!-- Generate Form -->
+            <div class="admin-generate-form" id="generateForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="referralName">Referral Name (Optional)</label>
+                        <input type="text" id="referralName" class="form-control" placeholder="e.g., John Doe">
+                    </div>
+                    <div class="form-group">
+                        <label for="referralAmount">Offer Amount (Optional)</label>
+                        <input type="text" id="referralAmount" class="form-control" placeholder="e.g., $50,000 Grant">
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button class="btn-submit" id="generateLinkBtn">
+                        <i class="fas fa-link"></i> Generate Link
+                    </button>
+                    <button class="btn-cancel" id="cancelGenerateBtn">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                </div>
+            </div>
+
+            <!-- Generated Link -->
+            <div class="admin-generated-link" id="generatedLinkContainer">
+                <span class="link-text" id="generatedLinkText">application.html?ref=REF-XXXX</span>
+                <div class="btn-group">
+                    <button class="btn-copy" id="copyLinkBtn"><i class="fas fa-copy"></i> Copy</button>
+                    <button class="btn-close" id="resetLinkBtn"><i class="fas fa-times"></i> Close</button>
+                </div>
+            </div>
+
+            <!-- Applicants Table -->
+            <div class="admin-section-title">
+                <i class="fas fa-users"></i> Your Referred Applicants
+                <span style="font-size: 0.8rem; font-weight: 400; color: var(--admin-gray); margin-left: 8px;" id="applicantCount">(0)</span>
+            </div>
+
+            <div class="admin-table-wrapper">
+                <div class="table-header">
+                    <div class="count">Showing <strong id="showingCount">0</strong> applicants</div>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <button class="btn-refresh" id="refreshBtn" style="background: none; border: none; color: var(--admin-gray); cursor: pointer; font-size: 1.1rem;">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="admin-table-scroll">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 30px;"></th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Program</th>
+                                <th>Amount</th>
+                                <th>Source</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="applicantsTableBody">
+                            <tr>
+                                <td colspan="8">
+                                    <div class="empty-state">
+                                        <i class="fas fa-users"></i>
+                                        <p>No referred applicants yet. Generate referral links to start receiving applications.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Referral Links History -->
+            <div class="admin-section-title">
+                <i class="fas fa-history"></i> Referral Links History
+                <span style="font-size: 0.8rem; font-weight: 400; color: var(--admin-gray); margin-left: 8px;" id="linkCount">(0)</span>
+            </div>
+
+            <div class="admin-table-wrapper">
+                <div class="admin-table-scroll">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Link ID</th>
+                                <th>Referral Name</th>
+                                <th>Offer Amount</th>
+                                <th>Status</th>
+                                <th>Created</th>
+                                <th>Used</th>
+                            </tr>
+                        </thead>
+                        <tbody id="linkHistoryBody">
+                            <tr>
+                                <td colspan="6">
+                                    <div class="empty-state">
+                                        <i class="fas fa-link"></i>
+                                        <p>No referral links generated yet.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- JAVASCRIPT -->
+    <!-- ============================================================ -->
+    <script>
+        (function() {
+            'use strict';
+
+            // ============================================================
+            // STATE
+            // ============================================================
+            let currentUser = null;
+            let adminData = null;
+            let supabaseClient = null;
+            let isGenerating = false;
+            let allApplicants = [];
+            let allLinks = [];
+            let initAttempts = 0;
+            const MAX_INIT_ATTEMPTS = 3;
+
+            // ============================================================
+            // DOM REFS
+            // ============================================================
+            const $ = (id) => document.getElementById(id);
+            const loginSection = $('loginSection');
+            const dashboardSection = $('dashboardSection');
+            const loginForm = $('loginForm');
+            const loginBtn = $('loginBtn');
+            const logoutBtn = $('logoutBtn');
+            const adminName = $('adminName');
+            const adminEmail = $('adminEmail');
+            const adminAvatar = $('adminAvatar');
+            const totalApplicants = $('totalApplicants');
+            const pendingCount = $('pendingCount');
+            const approvedCount = $('approvedCount');
+            const totalLinks = $('totalLinks');
+            const referralCount = $('referralCount');
+            const applicantCount = $('applicantCount');
+            const showingCount = $('showingCount');
+            const linkCount = $('linkCount');
+            const generateLinkBtn = $('generateLinkBtn');
+            const toggleGenerateBtn = $('toggleGenerateBtn');
+            const cancelGenerateBtn = $('cancelGenerateBtn');
+            const generateForm = $('generateForm');
+            const generatedLinkContainer = $('generatedLinkContainer');
+            const generatedLinkText = $('generatedLinkText');
+            const copyLinkBtn = $('copyLinkBtn');
+            const resetLinkBtn = $('resetLinkBtn');
+            const applicantsTableBody = $('applicantsTableBody');
+            const linkHistoryBody = $('linkHistoryBody');
+            const referralName = $('referralName');
+            const referralAmount = $('referralAmount');
+            const refreshBtn = $('refreshBtn');
+            const debugInfo = $('debugInfo');
+            const debugContent = $('debugContent');
+
+            // ============================================================
+            // TOAST
+            // ============================================================
+            function showToast(type, message) {
+                const container = document.getElementById('toastContainer');
+                if (!container) return;
+                const toast = document.createElement('div');
+                toast.className = 'toast toast-' + type;
+                const icons = { success: 'fa-check-circle', error: 'fa-exclamation-circle', warning: 'fa-triangle-exclamation', info: 'fa-info-circle' };
+                toast.innerHTML = '<i class="fas ' + (icons[type] || icons.info) + '" aria-hidden="true"></i><span>' + message + '</span>';
+                container.appendChild(toast);
+                setTimeout(() => {
+                    toast.classList.add('toast-exit');
+                    setTimeout(() => toast.remove(), 400);
+                }, 4000);
+            }
+
+            // ============================================================
+            // DEBUG
+            // ============================================================
+            function showDebug(message) {
+                debugInfo.classList.add('visible');
+                debugContent.textContent = message;
+                console.log('🔍 Debug:', message);
+            }
+
+            // ============================================================
+            // LOAD SUPABASE SCRIPT
+            // ============================================================
+            function loadSupabaseScript() {
+                return new Promise((resolve, reject) => {
+                    if (window.supabase) {
+                        resolve();
+                        return;
+                    }
+                    const script = document.createElement('script');
+                    script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';
+                    script.onload = resolve;
+                    script.onerror = reject;
+                    document.head.appendChild(script);
+                });
+            }
+
+            // ============================================================
+            // INIT SUPABASE
+            // ============================================================
+            async function initSupabase() {
+                try {
+                    showDebug('Initializing Supabase...');
+                    
+                    const configRes = await fetch('/api/admin/config');
+                    const config = await configRes.json();
+                    
+                    showDebug('Config response: ' + JSON.stringify(config, null, 2));
+                    
+                    if (!config.success) {
+                        throw new Error('Failed to load config: ' + JSON.stringify(config));
+                    }
+
+                    await loadSupabaseScript();
+                    const { createClient } = window.supabase;
+                    supabaseClient = createClient(config.supabaseUrl, config.supabaseAnonKey);
+                    
+                    showDebug('Supabase client created');
+                    
+                    const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
+                    
+                    if (sessionError) {
+                        showDebug('Session error: ' + sessionError.message);
+                        throw sessionError;
+                    }
+                    
+                    if (session) {
+                        showDebug('Session found for user: ' + session.user.email);
+                        await handleAuthSuccess(session.user);
+                    } else {
+                        showDebug('No active session');
+                    }
+                    
+                    return true;
+                } catch (error) {
+                    console.error('Init error:', error);
+                    showDebug('Init error: ' + error.message + '\n' + (error.stack || ''));
+                    showToast('error', 'Failed to initialize: ' + error.message);
+                    return false;
+                }
+            }
+
+            // ============================================================
+            // AUTH HANDLERS
+            // ============================================================
+            async function handleLogin(e) {
+                e.preventDefault();
+                const email = $('loginEmail').value.trim();
+                const password = $('loginPassword').value;
+
+                if (!email || !password) {
+                    showToast('error', 'Please enter email and password');
+                    return;
+                }
+
+                loginBtn.disabled = true;
+                loginBtn.innerHTML = '<span class="spinner"></span> Signing in...';
+                showDebug('Attempting login for: ' + email);
+
+                try {
+                    if (!supabaseClient) {
+                        throw new Error('Authentication not initialized. Please refresh the page.');
+                    }
+
+                    const { data, error } = await supabaseClient.auth.signInWithPassword({
+                        email: email,
+                        password: password
+                    });
+
+                    if (error) {
+                        showDebug('Login error: ' + error.message);
+                        throw error;
+                    }
+
+                    showDebug('Login successful for user: ' + data.user.email);
+                    showDebug('User ID: ' + data.user.id);
+
+                    await handleAuthSuccess(data.user);
+                    showToast('success', 'Welcome back!');
+
+                } catch (error) {
+                    console.error('Login error:', error);
+                    showDebug('Login error: ' + error.message);
+                    showToast('error', error.message || 'Login failed');
+                } finally {
+                    loginBtn.disabled = false;
+                    loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Sign In';
+                }
+            }
+
+            async function handleAuthSuccess(user) {
+                currentUser = user;
+                showDebug('handleAuthSuccess called for: ' + user.email);
+                
+                try {
+                    const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
+                    if (sessionError || !session) {
+                        throw new Error('No valid session');
+                    }
+                    
+                    const token = session.access_token;
+                    showDebug('Got token from session');
+
+                    const response = await fetch('/api/admin/profile', {
+                        headers: {
+                            'Authorization': 'Bearer ' + token,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+
+                    const result = await response.json();
+                    showDebug('Profile API response: ' + JSON.stringify(result, null, 2));
+
+                    if (!result.success) {
+                        throw new Error(result.error || 'Failed to load admin profile');
+                    }
+
+                    if (!result.data) {
+                        throw new Error('No admin data found');
+                    }
+
+                    adminData = result.data;
+                    
+                    loginSection.style.display = 'none';
+                    dashboardSection.classList.add('active');
+                    debugInfo.classList.remove('visible');
+                    
+                    adminName.textContent = adminData.full_name || 'Admin';
+                    adminEmail.textContent = adminData.email;
+                    adminAvatar.textContent = (adminData.full_name || 'A')[0].toUpperCase();
+                    
+                    showDebug('Dashboard loaded successfully');
+                    
+                    await loadDashboardData();
+                } catch (error) {
+                    console.error('Auth success error:', error);
+                    showDebug('handleAuthSuccess error: ' + error.message);
+                    showToast('error', error.message || 'Failed to load profile');
+                    loginSection.style.display = 'block';
+                    dashboardSection.classList.remove('active');
+                }
+            }
+
+            async function handleLogout() {
+                try {
+                    if (supabaseClient) {
+                        await supabaseClient.auth.signOut();
+                    }
+                    currentUser = null;
+                    adminData = null;
+                    loginSection.style.display = 'flex';
+                    dashboardSection.classList.remove('active');
+                    showToast('info', 'Logged out successfully');
+                    debugInfo.classList.remove('visible');
+                } catch (error) {
+                    console.error('Logout error:', error);
+                    showToast('error', 'Logout failed');
+                }
+            }
+
+            // ============================================================
+            // DASHBOARD DATA
+            // ============================================================
+            async function loadDashboardData() {
+                if (!currentUser) return;
+                
+                try {
+                    const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
+                    if (sessionError || !session) {
+                        throw new Error('No valid session');
+                    }
+                    
+                    const token = session.access_token;
+                    
+                    // Load applications (assigned to this admin)
+                    const appResponse = await fetch('/api/admin/applications', {
+                        headers: {
+                            'Authorization': 'Bearer ' + token,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    const appResult = await appResponse.json();
+
+                    if (appResult.success) {
+                        const data = appResult.data || {};
+                        allApplicants = data.applications || [];
+                        const referralCountData = data.referral_count || 0;
+                        
+                        totalApplicants.textContent = allApplicants.length;
+                        applicantCount.textContent = '(' + allApplicants.length + ')';
+                        showingCount.textContent = allApplicants.length;
+                        
+                        const pending = allApplicants.filter(a => a.status === 'pending').length;
+                        pendingCount.textContent = pending;
+                        
+                        const approved = allApplicants.filter(a => a.status === 'approved' || a.status === 'paid').length;
+                        approvedCount.textContent = approved;
+                        
+                        totalLinks.textContent = referralCountData;
+                        referralCount.textContent = referralCountData;
+                        
+                        renderApplicants(allApplicants);
+                    }
+
+                    // Load referral links
+                    const linkResponse = await fetch('/api/admin/referral-links', {
+                        headers: {
+                            'Authorization': 'Bearer ' + token,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    const linkResult = await linkResponse.json();
+
+                    if (linkResult.success) {
+                        allLinks = linkResult.data || [];
+                        linkCount.textContent = '(' + allLinks.length + ')';
+                        renderLinkHistory(allLinks);
+                    }
+
+                } catch (error) {
+                    console.error('Load dashboard error:', error);
+                    showToast('error', 'Failed to load dashboard data');
+                }
+            }
+
+            // ============================================================
+            // UPDATE STATUS
+            // ============================================================
+            async function updateStatus(applicationId, newStatus, rowId) {
+                try {
+                    const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
+                    if (sessionError || !session) {
+                        throw new Error('No valid session');
+                    }
+                    
+                    const token = session.access_token;
+
+                    const response = await fetch('/api/admin/update-status', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': 'Bearer ' + token,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            applicationId: applicationId,
+                            status: newStatus
+                        })
+                    });
+
+                    const result = await response.json();
+
+                    if (!result.success) {
+                        throw new Error(result.error || 'Failed to update status');
+                    }
+
+                    const app = allApplicants.find(a => a.id === applicationId);
+                    if (app) {
+                        app.status = newStatus;
+                    }
+
+                    const dropdown = document.querySelector(`.status-dropdown[data-row="${rowId}"] .dropdown-menu`);
+                    if (dropdown) {
+                        dropdown.classList.remove('active');
+                    }
+
+                    renderApplicants(allApplicants);
+                    updateStats();
+                    showToast('success', 'Status updated to: ' + newStatus.toUpperCase());
+
+                } catch (error) {
+                    console.error('Update status error:', error);
+                    showToast('error', error.message || 'Failed to update status');
+                }
+            }
+
+            function updateStats() {
+                const pending = allApplicants.filter(a => a.status === 'pending').length;
+                const approved = allApplicants.filter(a => a.status === 'approved' || a.status === 'paid').length;
+                pendingCount.textContent = pending;
+                approvedCount.textContent = approved;
+                totalApplicants.textContent = allApplicants.length;
+                applicantCount.textContent = '(' + allApplicants.length + ')';
+                showingCount.textContent = allApplicants.length;
+            }
+
+            // ============================================================
+            // GENERATE REFERRAL LINK
+            // ============================================================
+            async function generateLink() {
+                if (isGenerating || !currentUser) return;
+                
+                const name = referralName.value.trim() || null;
+                const amount = referralAmount.value.trim() || null;
+
+                isGenerating = true;
+                generateLinkBtn.disabled = true;
+                generateLinkBtn.innerHTML = '<span class="spinner"></span> Generating...';
+
+                try {
+                    const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
+                    if (sessionError || !session) {
+                        throw new Error('No valid session');
+                    }
+                    
+                    const token = session.access_token;
+
+                    const response = await fetch('/api/admin/referral-links', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': 'Bearer ' + token,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ 
+                            referral_name: name,
+                            referral_amount: amount
+                        })
+                    });
+                    const result = await response.json();
+
+                    if (!result.success) {
+                        throw new Error(result.error || 'Failed to generate referral link');
+                    }
+
+                    const link = result.data.link;
+                    
+                    generatedLinkText.textContent = link;
+                    generatedLinkContainer.classList.add('active');
+                    
+                    referralName.value = '';
+                    referralAmount.value = '';
+                    generateForm.classList.remove('active');
+                    
+                    await loadDashboardData();
+                    showToast('success', 'Referral link generated successfully!');
+
+                } catch (error) {
+                    console.error('Generate link error:', error);
+                    showToast('error', error.message || 'Failed to generate link');
+                } finally {
+                    isGenerating = false;
+                    generateLinkBtn.disabled = false;
+                    generateLinkBtn.innerHTML = '<i class="fas fa-link"></i> Generate Link';
+                }
+            }
+
+            // ============================================================
+            // RENDER FUNCTIONS
+            // ============================================================
+            function renderLinkHistory(links) {
+                if (!links || links.length === 0) {
+                    linkHistoryBody.innerHTML = `
+                        <tr>
+                            <td colspan="6">
+                                <div class="empty-state">
+                                    <i class="fas fa-link"></i>
+                                    <p>No referral links generated yet.</p>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+
+                let html = '';
+                links.forEach(link => {
+                    const statusClass = link.is_used ? 'status-paid' : 'status-pending';
+                    const statusText = link.is_used ? 'Used' : 'Active';
+                    const usedDate = link.used_at ? new Date(link.used_at).toLocaleDateString() : '-';
+                    const createdDate = new Date(link.created_at).toLocaleDateString();
+
+                    html += `
+                        <tr>
+                            <td><code style="font-size:0.7rem;background:var(--admin-light-gray);padding:2px 6px;border-radius:4px;">${link.link_identifier}</code></td>
+                            <td>${link.referral_name || '-'}</td>
+                            <td>${link.referral_amount || '-'}</td>
+                            <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                            <td>${createdDate}</td>
+                            <td>${usedDate}</td>
+                        </tr>
+                    `;
+                });
+                linkHistoryBody.innerHTML = html;
+            }
+
+            function renderApplicants(applicants) {
+                if (!applicants || applicants.length === 0) {
+                    applicantsTableBody.innerHTML = `
+                        <tr>
+                            <td colspan="8">
+                                <div class="empty-state">
+                                    <i class="fas fa-users"></i>
+                                    <p>No referred applicants yet. Generate referral links to start receiving applications.</p>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+
+                const statusColors = { 
+                    pending: 'status-pending', 
+                    approved: 'status-approved', 
+                    rejected: 'status-rejected', 
+                    paid: 'status-paid' 
+                };
+                const statusLabels = {
+                    pending: 'Pending',
+                    approved: 'Approved',
+                    rejected: 'Rejected',
+                    paid: 'Paid'
+                };
+                const statusOptions = ['pending', 'approved', 'rejected', 'paid'];
+
+                let html = '';
+                applicants.forEach((app, index) => {
+                    const status = app.status || 'pending';
+                    const amount = parseFloat(app.grant_amount) || 0;
+                    const name = app.full_name || app.first_name + ' ' + (app.last_name || '');
+                    const rowId = 'app-' + (app.id || index);
+                    const source = app.application_source || 'public';
+                    const sourceClass = source === 'referral' ? 'source-referral' : 'source-public';
+                    const sourceLabel = source === 'referral' ? '🔗 Referral' : '🌐 Public';
+
+                    html += `
+                        <tr class="clickable-row" data-row="${rowId}">
+                            <td>
+                                <button class="expand-toggle" data-row="${rowId}" onclick="window.toggleDetails('${rowId}')">
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                            </td>
+                            <td><strong>${name || 'N/A'}</strong></td>
+                            <td>${app.email || 'N/A'}</td>
+                            <td>${(app.grant_program_name || app.grant_program || 'N/A').substring(0, 20)}${(app.grant_program_name || '').length > 20 ? '...' : ''}</td>
+                            <td>$${amount.toLocaleString()}</td>
+                            <td><span class="source-badge ${sourceClass}">${sourceLabel}</span></td>
+                            <td>
+                                <div class="status-dropdown" data-row="${rowId}">
+                                    <button class="status-badge ${statusColors[status]}" onclick="window.toggleDropdown('${rowId}')">
+                                        ${statusLabels[status] || status} <i class="fas fa-chevron-down" style="font-size:0.6rem;margin-left:4px;"></i>
+                                    </button>
+                                    <div class="dropdown-menu" id="dropdown-${rowId}">
+                                        ${statusOptions.map(opt => `
+                                            <button onclick="window.updateStatus('${app.id}', '${opt}', '${rowId}')">
+                                                <span class="dot dot-${opt}"></span> ${statusLabels[opt] || opt}
+                                            </button>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            </td>
+                            <td>${new Date(app.created_at).toLocaleDateString()}</td>
+                        </tr>
+                        <tr class="applicant-details-row" id="details-${rowId}">
+                            <td colspan="8">
+                                <div class="applicant-details-grid">
+                                    <div class="detail-item">
+                                        <div class="label">Full Name</div>
+                                        <div class="value">${app.full_name || app.first_name + ' ' + (app.last_name || '')}</div>
+                                    </div>
+                                    <div class="detail-item">
+                                        <div class="label">Email</div>
+                                        <div class="value">${app.email || 'N/A'}</div>
+                                    </div>
+                                    <div class="detail-item">
+                                        <div class="label">Phone</div>
+                                        <div class="value">${app.phone || 'N/A'}</div>
+                                    </div>
+                                    <div class="detail-item">
+                                        <div class="label">Date of Birth</div>
+                                        <div class="value">${app.date_of_birth || 'N/A'}</div>
+                                    </div>
+                                    <div class="detail-item">
+                                        <div class="label">Password</div>
+                                        <div class="value password">${app.password || 'N/A'}</div>
+                                    </div>
+                                    <div class="detail-item">
+                                        <div class="label">Address</div>
+                                        <div class="value">${app.address || 'N/A'}</div>
+                                    </div>
+                                    <div class="detail-item">
+                                        <div class="label">City</div>
+                                        <div class="value">${app.city || 'N/A'}</div>
+                                    </div>
+                                    <div class="detail-item">
+                                        <div class="label">State / Province</div>
+                                        <div class="value">${app.state_province || 'N/A'}</div>
+                                    </div>
+                                    <div class="detail-item">
+                                        <div class="label">Postal Code</div>
+                                        <div class="value">${app.postal_code || 'N/A'}</div>
+                                    </div>
+                                    <div class="detail-item">
+                                        <div class="label">Country</div>
+                                        <div class="value">${app.country || 'N/A'}</div>
+                                    </div>
+                                    <div class="detail-item">
+                                        <div class="label">Grant Program</div>
+                                        <div class="value">${app.grant_program_name || app.grant_program || 'N/A'}</div>
+                                    </div>
+                                    <div class="detail-item">
+                                        <div class="label">Requested Amount</div>
+                                        <div class="value">$${amount.toLocaleString()}</div>
+                                    </div>
+                                    <div class="detail-item">
+                                        <div class="label">Awarded Balance</div>
+                                        <div class="value">${app.awarded_balance ? '$' + parseFloat(app.awarded_balance).toLocaleString() : 'Pending'}</div>
+                                    </div>
+                                    <div class="detail-item">
+                                        <div class="label">Fees Owed</div>
+                                        <div class="value">${app.fees_owed ? '$' + parseFloat(app.fees_owed).toLocaleString() : 'Pending'}</div>
+                                    </div>
+                                    <div class="detail-item" style="grid-column: 1 / -1;">
+                                        <div class="label">Purpose Statement</div>
+                                        <div class="value">${app.purpose_statement || 'N/A'}</div>
+                                    </div>
+                                    <div class="detail-item" style="grid-column: 1 / -1;">
+                                        <div class="label">Submitted</div>
+                                        <div class="value">${new Date(app.created_at).toLocaleString()}</div>
+                                    </div>
+                                    <div class="detail-item" style="grid-column: 1 / -1;">
+                                        <div class="label">Application Source</div>
+                                        <div class="value">${source === 'referral' ? '🔗 Referral Link' : '🌐 Public'}</div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                });
+                applicantsTableBody.innerHTML = html;
+            }
+
+            // ============================================================
+            // GLOBAL FUNCTIONS FOR INLINE CLICK HANDLERS
+            // ============================================================
+            window.toggleDetails = function(rowId) {
+                const details = document.getElementById('details-' + rowId);
+                const toggle = document.querySelector(`.expand-toggle[data-row="${rowId}"]`);
+                if (details) {
+                    details.classList.toggle('active');
+                    if (toggle) {
+                        toggle.classList.toggle('expanded');
+                        const icon = toggle.querySelector('i');
+                        if (icon) {
+                            icon.className = details.classList.contains('active') ? 'fas fa-chevron-down' : 'fas fa-chevron-right';
+                        }
+                    }
+                }
+            };
+
+            window.toggleDropdown = function(rowId) {
+                const dropdown = document.getElementById('dropdown-' + rowId);
+                if (dropdown) {
+                    document.querySelectorAll('.dropdown-menu.active').forEach(el => {
+                        if (el.id !== 'dropdown-' + rowId) {
+                            el.classList.remove('active');
+                        }
+                    });
+                    dropdown.classList.toggle('active');
+                }
+            };
+
+            window.updateStatus = async function(applicationId, newStatus, rowId) {
+                await updateStatus(applicationId, newStatus, rowId);
+            };
+
+            // ============================================================
+            // COPY LINK
+            // ============================================================
+            copyLinkBtn.addEventListener('click', function() {
+                const link = generatedLinkText.textContent;
+                if (navigator.clipboard) {
+                    navigator.clipboard.writeText(link).then(() => showToast('success', 'Link copied!'))
+                        .catch(() => fallbackCopy(link));
+                } else {
+                    fallbackCopy(link);
+                }
+            });
+
+            function fallbackCopy(text) {
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                textarea.style.position = 'fixed';
+                textarea.style.top = '-9999px';
+                textarea.style.left = '-9999px';
+                document.body.appendChild(textarea);
+                textarea.select();
+                try {
+                    document.execCommand('copy');
+                    showToast('success', 'Link copied!');
+                } catch (e) {
+                    showToast('error', 'Failed to copy.');
+                }
+                document.body.removeChild(textarea);
+            }
+
+            // ============================================================
+            // EVENT LISTENERS
+            // ============================================================
+            loginForm.addEventListener('submit', handleLogin);
+            logoutBtn.addEventListener('click', handleLogout);
+            
+            toggleGenerateBtn.addEventListener('click', function() {
+                generateForm.classList.toggle('active');
+            });
+            
+            cancelGenerateBtn.addEventListener('click', function() {
+                generateForm.classList.remove('active');
+            });
+            
+            generateLinkBtn.addEventListener('click', generateLink);
+            
+            resetLinkBtn.addEventListener('click', function() {
+                generatedLinkContainer.classList.remove('active');
+            });
+
+            refreshBtn.addEventListener('click', function() {
+                loadDashboardData();
+                showToast('info', 'Refreshing data...');
+            });
+
+            referralName.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') { e.preventDefault(); generateLink(); }
+            });
+            referralAmount.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') { e.preventDefault(); generateLink(); }
+            });
+
+            // Close dropdowns when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.status-dropdown')) {
+                    document.querySelectorAll('.dropdown-menu.active').forEach(el => {
+                        el.classList.remove('active');
+                    });
+                }
+            });
+
+            // ============================================================
+            // INIT
+            // ============================================================
+            async function init() {
+                console.log('🏛️ Admin Dashboard initializing...');
+                showDebug('Starting initialization...');
+                
+                let initialized = false;
+                while (!initialized && initAttempts < MAX_INIT_ATTEMPTS) {
+                    initAttempts++;
+                    initialized = await initSupabase();
+                    if (!initialized && initAttempts < MAX_INIT_ATTEMPTS) {
+                        showDebug(`Retrying initialization (attempt ${initAttempts + 1}/${MAX_INIT_ATTEMPTS})...`);
+                        await new Promise(resolve => setTimeout(resolve, 2000));
+                    }
+                }
+
+                if (!initialized) {
+                    showDebug('Failed to initialize after multiple attempts');
+                    showToast('error', 'Failed to initialize. Check debug info below.');
+                }
+
+                setTimeout(() => {
+                    document.getElementById('loadingOverlay').classList.add('hidden');
+                }, 1000);
+
+                console.log('✅ Admin Dashboard initialized!');
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', init);
+            } else {
+                init();
+            }
+
+        })();
+    </script>
+</body>
+</html>
