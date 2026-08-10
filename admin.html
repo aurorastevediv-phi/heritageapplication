@@ -282,8 +282,8 @@
         .admin-stat-card.warning .icon { color: var(--admin-warning); }
         .admin-stat-card.danger .icon { color: var(--admin-danger); }
 
-        /* Referral Section */
-        .admin-referral-section {
+        /* Link Limit Banner */
+        .admin-link-limit {
             background: linear-gradient(135deg, var(--admin-primary), var(--admin-primary-dark));
             color: white;
             border-radius: var(--admin-radius);
@@ -295,16 +295,23 @@
             flex-wrap: wrap;
             gap: 16px;
         }
-        .admin-referral-section .stat {
-            font-size: 1.1rem;
-            font-weight: 600;
+        .admin-link-limit .info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
         }
-        .admin-referral-section .stat .number {
+        .admin-link-limit .info .count {
             font-size: 2.5rem;
             font-weight: 900;
-            display: block;
         }
-        .admin-referral-section .btn-generate {
+        .admin-link-limit .info .label {
+            font-size: 0.95rem;
+            opacity: 0.85;
+        }
+        .admin-link-limit .info .label i {
+            margin-right: 6px;
+        }
+        .admin-link-limit .btn-generate {
             background: white;
             color: var(--admin-primary);
             border: none;
@@ -318,17 +325,28 @@
             align-items: center;
             gap: 8px;
         }
-        .admin-referral-section .btn-generate:hover {
+        .admin-link-limit .btn-generate:hover:not(:disabled) {
             transform: scale(1.03);
             box-shadow: 0 4px 16px rgba(0,0,0,0.2);
         }
-        .admin-referral-section .btn-generate:disabled {
+        .admin-link-limit .btn-generate:disabled {
             opacity: 0.6;
             cursor: not-allowed;
             transform: none;
+            background: rgba(255,255,255,0.7);
+            color: var(--admin-gray);
+        }
+        .admin-link-limit .btn-generate .badge {
+            background: rgba(255,255,255,0.2);
+            padding: 2px 10px;
+            border-radius: 9999px;
+            font-size: 0.7rem;
+        }
+        .admin-link-limit .btn-generate:disabled .badge {
+            background: rgba(0,0,0,0.1);
         }
 
-        /* Generate Form */
+        /* Generate Link Form */
         .admin-generate-form {
             background: white;
             border-radius: var(--admin-radius);
@@ -386,10 +404,14 @@
         .admin-generate-form .btn-submit:hover {
             background: #0b8043;
         }
+        .admin-generate-form .btn-submit:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
         .admin-generate-form .btn-cancel {
             padding: 10px 24px;
-            background: var(--admin-light-gray);
-            color: var(--admin-gray);
+            background: var(--admin-gray);
+            color: white;
             border: none;
             border-radius: 6px;
             font-weight: 600;
@@ -401,13 +423,7 @@
             gap: 8px;
         }
         .admin-generate-form .btn-cancel:hover {
-            background: var(--admin-border);
-        }
-        .admin-generate-form .form-actions {
-            display: flex;
-            gap: 10px;
-            margin-top: 12px;
-            flex-wrap: wrap;
+            background: #4a4a4a;
         }
 
         /* Generated Link */
@@ -475,7 +491,7 @@
             color: var(--admin-primary);
         }
 
-        /* Table - Modern */
+        /* Link History Table */
         .admin-table-wrapper {
             background: white;
             border-radius: var(--admin-radius);
@@ -534,7 +550,25 @@
             background: var(--admin-primary-light);
         }
 
-        /* Status Badge */
+        /* Status Badge - Links */
+        .link-status-badge {
+            padding: 4px 12px;
+            border-radius: 9999px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            display: inline-block;
+        }
+        .link-active {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        .link-inactive {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        /* Applicants Status Badge */
         .status-badge {
             padding: 4px 12px;
             border-radius: 9999px;
@@ -603,6 +637,56 @@
         .dot-approved { background: #10b981; }
         .dot-rejected { background: #ef4444; }
         .dot-paid { background: #3b82f6; }
+
+        /* Link Action Buttons */
+        .link-actions {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .link-actions .btn-deactivate {
+            background: var(--admin-danger);
+            color: white;
+            border: none;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--admin-transition);
+        }
+        .link-actions .btn-deactivate:hover {
+            opacity: 0.8;
+            transform: scale(0.95);
+        }
+        .link-actions .btn-deactivate:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .link-actions .btn-deactivated {
+            background: var(--admin-gray);
+            color: white;
+            border: none;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            opacity: 0.6;
+        }
+        .link-actions .btn-copy-link {
+            background: var(--admin-primary);
+            color: white;
+            border: none;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--admin-transition);
+        }
+        .link-actions .btn-copy-link:hover {
+            opacity: 0.8;
+        }
 
         /* Applicant Details Expand */
         .applicant-details-row {
@@ -763,8 +847,9 @@
             .admin-stats { grid-template-columns: 1fr 1fr; gap: 10px; }
             .admin-stat-card { padding: 14px 16px; }
             .admin-stat-card .number { font-size: 1.5rem; }
-            .admin-referral-section { flex-direction: column; text-align: center; padding: 20px; }
-            .admin-referral-section .stat .number { font-size: 2rem; }
+            .admin-link-limit { flex-direction: column; text-align: center; padding: 20px; }
+            .admin-link-limit .info { flex-direction: column; }
+            .admin-link-limit .info .count { font-size: 2rem; }
             .admin-generate-form .form-row { grid-template-columns: 1fr; }
             .admin-generated-link { flex-direction: column; text-align: center; }
             .admin-generated-link .btn-group { width: 100%; justify-content: center; }
@@ -772,6 +857,7 @@
             .admin-table-scroll table { font-size: 0.75rem; }
             .admin-table-scroll th, .admin-table-scroll td { padding: 8px 10px; }
             .applicant-details-grid { grid-template-columns: 1fr; }
+            .link-actions { flex-direction: column; align-items: flex-start; }
         }
         @media (max-width: 480px) {
             .admin-stats { grid-template-columns: 1fr; }
@@ -828,21 +914,24 @@
             font-size: 0.85rem;
         }
 
-        /* Referral Source Badge */
-        .source-badge {
-            font-size: 0.6rem;
-            padding: 2px 8px;
-            border-radius: 9999px;
-            font-weight: 600;
-            display: inline-block;
+        /* Link limit reached message */
+        .link-limit-reached {
+            display: none;
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            border-radius: var(--admin-radius);
+            padding: 12px 16px;
+            margin-bottom: 16px;
+            color: #92400e;
+            font-size: 0.85rem;
+            align-items: center;
+            gap: 10px;
         }
-        .source-referral {
-            background: #dbeafe;
-            color: #1e40af;
+        .link-limit-reached.visible {
+            display: flex;
         }
-        .source-public {
-            background: #f1f3f4;
-            color: #5f6368;
+        .link-limit-reached i {
+            font-size: 1.2rem;
         }
     </style>
 </head>
@@ -873,7 +962,7 @@
             <form id="loginForm" novalidate>
                 <div class="form-group">
                     <label for="loginEmail">Email Address</label>
-                    <input type="email" id="loginEmail" class="form-control" placeholder="admin@application.com" required autocomplete="email">
+                    <input type="email" id="loginEmail" class="form-control" placeholder="admin@application.com" required autocomplete="email" value="admin@application.com">
                 </div>
                 <div class="form-group">
                     <label for="loginPassword">Password</label>
@@ -901,7 +990,7 @@
             <div class="brand">
                 <i class="fas fa-gem"></i>
                 Heritage Admin
-                <span>| Referral Dashboard</span>
+                <span>| Dashboard</span>
             </div>
             <div class="user-info">
                 <div class="details">
@@ -921,45 +1010,52 @@
             <!-- Stats -->
             <div class="admin-stats">
                 <div class="admin-stat-card primary">
+                    <i class="fas fa-link icon"></i>
+                    <div class="number" id="totalLinks">0</div>
+                    <div class="label">Total Links Generated</div>
+                </div>
+                <div class="admin-stat-card success">
                     <i class="fas fa-users icon"></i>
                     <div class="number" id="totalApplicants">0</div>
-                    <div class="label">Total Referred</div>
+                    <div class="label">Total Applicants</div>
                 </div>
                 <div class="admin-stat-card warning">
                     <i class="fas fa-clock icon"></i>
                     <div class="number" id="pendingCount">0</div>
                     <div class="label">Pending Review</div>
                 </div>
-                <div class="admin-stat-card success">
-                    <i class="fas fa-check-circle icon"></i>
-                    <div class="number" id="approvedCount">0</div>
-                    <div class="label">Approved / Paid</div>
-                </div>
-                <div class="admin-stat-card danger">
-                    <i class="fas fa-link icon"></i>
-                    <div class="number" id="totalLinks">0</div>
-                    <div class="label">Referral Links</div>
+                <div class="admin-stat-card">
+                    <i class="fas fa-link icon" style="color: var(--admin-primary);"></i>
+                    <div class="number" id="activeLinksCount">0/2</div>
+                    <div class="label">Active Links</div>
                 </div>
             </div>
 
-            <!-- Referral Section -->
-            <div class="admin-referral-section">
-                <div>
-                    <div class="stat">
-                        <span class="number" id="referralCount">0</span>
-                        Referral Links Created
+            <!-- Link Limit Section -->
+            <div class="admin-link-limit">
+                <div class="info">
+                    <div>
+                        <div class="label"><i class="fas fa-link"></i> Active Links</div>
+                        <div class="count" id="activeLinksDisplay">0 / 2</div>
                     </div>
                 </div>
                 <button class="btn-generate" id="toggleGenerateBtn">
-                    <i class="fas fa-plus-circle"></i> Generate Referral Link
+                    <i class="fas fa-plus-circle"></i> Generate New Link
+                    <span class="badge" id="linkLimitBadge">0/2</span>
                 </button>
+            </div>
+
+            <!-- Link Limit Reached Warning -->
+            <div class="link-limit-reached" id="linkLimitWarning">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>You have reached the maximum of 2 active links. Please deactivate an existing link before generating a new one.</span>
             </div>
 
             <!-- Generate Form -->
             <div class="admin-generate-form" id="generateForm">
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="referralName">Referral Name (Optional)</label>
+                        <label for="referralName">Applicant Name (Optional)</label>
                         <input type="text" id="referralName" class="form-control" placeholder="e.g., John Doe">
                     </div>
                     <div class="form-group">
@@ -967,7 +1063,7 @@
                         <input type="text" id="referralAmount" class="form-control" placeholder="e.g., $50,000 Grant">
                     </div>
                 </div>
-                <div class="form-actions">
+                <div style="margin-top: 12px; display: flex; gap: 10px; flex-wrap: wrap;">
                     <button class="btn-submit" id="generateLinkBtn">
                         <i class="fas fa-link"></i> Generate Link
                     </button>
@@ -979,7 +1075,7 @@
 
             <!-- Generated Link -->
             <div class="admin-generated-link" id="generatedLinkContainer">
-                <span class="link-text" id="generatedLinkText">application.html?ref=REF-XXXX</span>
+                <span class="link-text" id="generatedLinkText">application.html?token=ABC123</span>
                 <div class="btn-group">
                     <button class="btn-copy" id="copyLinkBtn"><i class="fas fa-copy"></i> Copy</button>
                     <button class="btn-close" id="resetLinkBtn"><i class="fas fa-times"></i> Close</button>
@@ -988,7 +1084,7 @@
 
             <!-- Applicants Table -->
             <div class="admin-section-title">
-                <i class="fas fa-users"></i> Your Referred Applicants
+                <i class="fas fa-users"></i> Recent Applicants
                 <span style="font-size: 0.8rem; font-weight: 400; color: var(--admin-gray); margin-left: 8px;" id="applicantCount">(0)</span>
             </div>
 
@@ -1010,17 +1106,16 @@
                                 <th>Email</th>
                                 <th>Program</th>
                                 <th>Amount</th>
-                                <th>Source</th>
                                 <th>Status</th>
                                 <th>Date</th>
                             </tr>
                         </thead>
                         <tbody id="applicantsTableBody">
                             <tr>
-                                <td colspan="8">
+                                <td colspan="7">
                                     <div class="empty-state">
                                         <i class="fas fa-users"></i>
-                                        <p>No referred applicants yet. Generate referral links to start receiving applications.</p>
+                                        <p>No applicants yet. Generate links to start receiving applications.</p>
                                     </div>
                                 </td>
                             </tr>
@@ -1029,9 +1124,9 @@
                 </div>
             </div>
 
-            <!-- Referral Links History -->
+            <!-- Link History -->
             <div class="admin-section-title">
-                <i class="fas fa-history"></i> Referral Links History
+                <i class="fas fa-history"></i> Link History
                 <span style="font-size: 0.8rem; font-weight: 400; color: var(--admin-gray); margin-left: 8px;" id="linkCount">(0)</span>
             </div>
 
@@ -1041,19 +1136,18 @@
                         <thead>
                             <tr>
                                 <th>Link ID</th>
-                                <th>Referral Name</th>
-                                <th>Offer Amount</th>
+                                <th>Referral</th>
                                 <th>Status</th>
                                 <th>Created</th>
-                                <th>Used</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody id="linkHistoryBody">
                             <tr>
-                                <td colspan="6">
+                                <td colspan="5">
                                     <div class="empty-state">
                                         <i class="fas fa-link"></i>
-                                        <p>No referral links generated yet.</p>
+                                        <p>No links generated yet.</p>
                                     </div>
                                 </td>
                             </tr>
@@ -1083,6 +1177,7 @@
             let allLinks = [];
             let initAttempts = 0;
             const MAX_INIT_ATTEMPTS = 3;
+            const MAX_ACTIVE_LINKS = 2;
 
             // ============================================================
             // DOM REFS
@@ -1096,11 +1191,13 @@
             const adminName = $('adminName');
             const adminEmail = $('adminEmail');
             const adminAvatar = $('adminAvatar');
+            const totalLinks = $('totalLinks');
             const totalApplicants = $('totalApplicants');
             const pendingCount = $('pendingCount');
-            const approvedCount = $('approvedCount');
-            const totalLinks = $('totalLinks');
-            const referralCount = $('referralCount');
+            const activeLinksCount = $('activeLinksCount');
+            const activeLinksDisplay = $('activeLinksDisplay');
+            const linkLimitBadge = $('linkLimitBadge');
+            const linkLimitWarning = $('linkLimitWarning');
             const applicantCount = $('applicantCount');
             const showingCount = $('showingCount');
             const linkCount = $('linkCount');
@@ -1289,10 +1386,12 @@
 
                     adminData = result.data;
                     
+                    // Show dashboard
                     loginSection.style.display = 'none';
                     dashboardSection.classList.add('active');
                     debugInfo.classList.remove('visible');
                     
+                    // Update UI
                     adminName.textContent = adminData.full_name || 'Admin';
                     adminEmail.textContent = adminData.email;
                     adminAvatar.textContent = (adminData.full_name || 'A')[0].toUpperCase();
@@ -1340,20 +1439,53 @@
                     
                     const token = session.access_token;
                     
-                    // Load applications (assigned to this admin)
-                    const appResponse = await fetch('/api/admin/applications', {
+                    // Load links
+                    const linksResponse = await fetch('/api/admin/links', {
                         headers: {
                             'Authorization': 'Bearer ' + token,
                             'Content-Type': 'application/json'
                         }
                     });
-                    const appResult = await appResponse.json();
+                    const linksResult = await linksResponse.json();
 
-                    if (appResult.success) {
-                        const data = appResult.data || {};
-                        allApplicants = data.applications || [];
-                        const referralCountData = data.referral_count || 0;
+                    if (linksResult.success) {
+                        allLinks = linksResult.data.links || [];
+                        const activeCount = linksResult.data.active_count || 0;
+                        const total = allLinks.length;
                         
+                        totalLinks.textContent = total;
+                        linkCount.textContent = '(' + total + ')';
+                        
+                        // Update active links display
+                        activeLinksCount.textContent = activeCount + '/' + MAX_ACTIVE_LINKS;
+                        activeLinksDisplay.textContent = activeCount + ' / ' + MAX_ACTIVE_LINKS;
+                        linkLimitBadge.textContent = activeCount + '/' + MAX_ACTIVE_LINKS;
+                        
+                        // Show/hide limit warning
+                        if (activeCount >= MAX_ACTIVE_LINKS) {
+                            linkLimitWarning.classList.add('visible');
+                            toggleGenerateBtn.disabled = true;
+                            toggleGenerateBtn.innerHTML = '<i class="fas fa-lock"></i> Maximum Links Reached <span class="badge">' + activeCount + '/' + MAX_ACTIVE_LINKS + '</span>';
+                        } else {
+                            linkLimitWarning.classList.remove('visible');
+                            toggleGenerateBtn.disabled = false;
+                            toggleGenerateBtn.innerHTML = '<i class="fas fa-plus-circle"></i> Generate New Link <span class="badge">' + activeCount + '/' + MAX_ACTIVE_LINKS + '</span>';
+                        }
+                        
+                        renderLinkHistory(allLinks);
+                    }
+
+                    // Load applicants
+                    const applicantResponse = await fetch('/api/admin/applications', {
+                        headers: {
+                            'Authorization': 'Bearer ' + token,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    const applicantResult = await applicantResponse.json();
+
+                    if (applicantResult.success) {
+                        allApplicants = applicantResult.data || [];
                         totalApplicants.textContent = allApplicants.length;
                         applicantCount.textContent = '(' + allApplicants.length + ')';
                         showingCount.textContent = allApplicants.length;
@@ -1361,28 +1493,7 @@
                         const pending = allApplicants.filter(a => a.status === 'pending').length;
                         pendingCount.textContent = pending;
                         
-                        const approved = allApplicants.filter(a => a.status === 'approved' || a.status === 'paid').length;
-                        approvedCount.textContent = approved;
-                        
-                        totalLinks.textContent = referralCountData;
-                        referralCount.textContent = referralCountData;
-                        
                         renderApplicants(allApplicants);
-                    }
-
-                    // Load referral links
-                    const linkResponse = await fetch('/api/admin/referral-links', {
-                        headers: {
-                            'Authorization': 'Bearer ' + token,
-                            'Content-Type': 'application/json'
-                        }
-                    });
-                    const linkResult = await linkResponse.json();
-
-                    if (linkResult.success) {
-                        allLinks = linkResult.data || [];
-                        linkCount.textContent = '(' + allLinks.length + ')';
-                        renderLinkHistory(allLinks);
                     }
 
                 } catch (error) {
@@ -1421,18 +1532,19 @@
                         throw new Error(result.error || 'Failed to update status');
                     }
 
+                    // Update local data
                     const app = allApplicants.find(a => a.id === applicationId);
                     if (app) {
                         app.status = newStatus;
                     }
 
+                    // Close dropdown
                     const dropdown = document.querySelector(`.status-dropdown[data-row="${rowId}"] .dropdown-menu`);
                     if (dropdown) {
                         dropdown.classList.remove('active');
                     }
 
                     renderApplicants(allApplicants);
-                    updateStats();
                     showToast('success', 'Status updated to: ' + newStatus.toUpperCase());
 
                 } catch (error) {
@@ -1441,18 +1553,8 @@
                 }
             }
 
-            function updateStats() {
-                const pending = allApplicants.filter(a => a.status === 'pending').length;
-                const approved = allApplicants.filter(a => a.status === 'approved' || a.status === 'paid').length;
-                pendingCount.textContent = pending;
-                approvedCount.textContent = approved;
-                totalApplicants.textContent = allApplicants.length;
-                applicantCount.textContent = '(' + allApplicants.length + ')';
-                showingCount.textContent = allApplicants.length;
-            }
-
             // ============================================================
-            // GENERATE REFERRAL LINK
+            // GENERATE LINK
             // ============================================================
             async function generateLink() {
                 if (isGenerating || !currentUser) return;
@@ -1472,7 +1574,7 @@
                     
                     const token = session.access_token;
 
-                    const response = await fetch('/api/admin/referral-links', {
+                    const response = await fetch('/api/admin/links', {
                         method: 'POST',
                         headers: {
                             'Authorization': 'Bearer ' + token,
@@ -1486,20 +1588,24 @@
                     const result = await response.json();
 
                     if (!result.success) {
-                        throw new Error(result.error || 'Failed to generate referral link');
+                        throw new Error(result.error || 'Failed to generate link');
                     }
 
                     const link = result.data.link;
-                    
+                    const activeCount = result.data.active_count || 0;
+
+                    // Show generated link
                     generatedLinkText.textContent = link;
                     generatedLinkContainer.classList.add('active');
                     
+                    // Reset fields
                     referralName.value = '';
                     referralAmount.value = '';
                     generateForm.classList.remove('active');
                     
+                    // Reload data
                     await loadDashboardData();
-                    showToast('success', 'Referral link generated successfully!');
+                    showToast('success', 'Link generated successfully!');
 
                 } catch (error) {
                     console.error('Generate link error:', error);
@@ -1512,16 +1618,87 @@
             }
 
             // ============================================================
+            // DEACTIVATE LINK
+            // ============================================================
+            async function deactivateLink(linkId) {
+                if (!linkId) return;
+                
+                if (!confirm('Are you sure you want to deactivate this link? It will no longer work for new applications.')) {
+                    return;
+                }
+
+                try {
+                    const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
+                    if (sessionError || !session) {
+                        throw new Error('No valid session');
+                    }
+                    
+                    const token = session.access_token;
+
+                    const response = await fetch('/api/admin/links/' + linkId, {
+                        method: 'DELETE',
+                        headers: {
+                            'Authorization': 'Bearer ' + token,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+
+                    const result = await response.json();
+
+                    if (!result.success) {
+                        throw new Error(result.error || 'Failed to deactivate link');
+                    }
+
+                    // Reload data
+                    await loadDashboardData();
+                    showToast('success', 'Link deactivated successfully');
+
+                } catch (error) {
+                    console.error('Deactivate link error:', error);
+                    showToast('error', error.message || 'Failed to deactivate link');
+                }
+            }
+
+            // ============================================================
+            // COPY LINK
+            // ============================================================
+            function copyLinkToClipboard(linkText) {
+                if (navigator.clipboard) {
+                    navigator.clipboard.writeText(linkText).then(() => showToast('success', 'Link copied!'))
+                        .catch(() => fallbackCopy(linkText));
+                } else {
+                    fallbackCopy(linkText);
+                }
+            }
+
+            function fallbackCopy(text) {
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                textarea.style.position = 'fixed';
+                textarea.style.top = '-9999px';
+                textarea.style.left = '-9999px';
+                document.body.appendChild(textarea);
+                textarea.select();
+                try {
+                    document.execCommand('copy');
+                    showToast('success', 'Link copied!');
+                } catch (e) {
+                    showToast('error', 'Failed to copy.');
+                }
+                document.body.removeChild(textarea);
+            }
+
+            // ============================================================
             // RENDER FUNCTIONS
             // ============================================================
             function renderLinkHistory(links) {
                 if (!links || links.length === 0) {
                     linkHistoryBody.innerHTML = `
                         <tr>
-                            <td colspan="6">
+                            <td colspan="5">
                                 <div class="empty-state">
                                     <i class="fas fa-link"></i>
-                                    <p>No referral links generated yet.</p>
+                                    <p>No links generated yet.</p>
                                 </div>
                             </td>
                         </tr>
@@ -1531,19 +1708,35 @@
 
                 let html = '';
                 links.forEach(link => {
-                    const statusClass = link.is_used ? 'status-paid' : 'status-pending';
-                    const statusText = link.is_used ? 'Used' : 'Active';
-                    const usedDate = link.used_at ? new Date(link.used_at).toLocaleDateString() : '-';
+                    const statusClass = link.is_active ? 'link-active' : 'link-inactive';
+                    const statusText = link.is_active ? 'Active' : 'Inactive';
                     const createdDate = new Date(link.created_at).toLocaleDateString();
+                    const referral = link.referral_name || link.referral_amount || '-';
+                    
+                    // Build full link URL
+                    const baseUrl = window.location.origin;
+                    const fullLink = baseUrl + '/application.html?token=' + link.link_identifier;
 
                     html += `
                         <tr>
                             <td><code style="font-size:0.7rem;background:var(--admin-light-gray);padding:2px 6px;border-radius:4px;">${link.link_identifier}</code></td>
-                            <td>${link.referral_name || '-'}</td>
-                            <td>${link.referral_amount || '-'}</td>
-                            <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                            <td>${referral}</td>
+                            <td><span class="link-status-badge ${statusClass}">${statusText}</span></td>
                             <td>${createdDate}</td>
-                            <td>${usedDate}</td>
+                            <td>
+                                <div class="link-actions">
+                                    ${link.is_active ? `
+                                        <button class="btn-copy-link" onclick="window.copyLink('${fullLink}')">
+                                            <i class="fas fa-copy"></i> Copy
+                                        </button>
+                                        <button class="btn-deactivate" onclick="window.deactivateLink('${link.id}')">
+                                            <i class="fas fa-times"></i> Deactivate
+                                        </button>
+                                    ` : `
+                                        <span class="btn-deactivated"><i class="fas fa-ban"></i> Deactivated</span>
+                                    `}
+                                </div>
+                            </td>
                         </tr>
                     `;
                 });
@@ -1554,10 +1747,10 @@
                 if (!applicants || applicants.length === 0) {
                     applicantsTableBody.innerHTML = `
                         <tr>
-                            <td colspan="8">
+                            <td colspan="7">
                                 <div class="empty-state">
                                     <i class="fas fa-users"></i>
-                                    <p>No referred applicants yet. Generate referral links to start receiving applications.</p>
+                                    <p>No applicants yet. Generate links to start receiving applications.</p>
                                 </div>
                             </td>
                         </tr>
@@ -1585,9 +1778,6 @@
                     const amount = parseFloat(app.grant_amount) || 0;
                     const name = app.full_name || app.first_name + ' ' + (app.last_name || '');
                     const rowId = 'app-' + (app.id || index);
-                    const source = app.application_source || 'public';
-                    const sourceClass = source === 'referral' ? 'source-referral' : 'source-public';
-                    const sourceLabel = source === 'referral' ? '🔗 Referral' : '🌐 Public';
 
                     html += `
                         <tr class="clickable-row" data-row="${rowId}">
@@ -1600,7 +1790,6 @@
                             <td>${app.email || 'N/A'}</td>
                             <td>${(app.grant_program_name || app.grant_program || 'N/A').substring(0, 20)}${(app.grant_program_name || '').length > 20 ? '...' : ''}</td>
                             <td>$${amount.toLocaleString()}</td>
-                            <td><span class="source-badge ${sourceClass}">${sourceLabel}</span></td>
                             <td>
                                 <div class="status-dropdown" data-row="${rowId}">
                                     <button class="status-badge ${statusColors[status]}" onclick="window.toggleDropdown('${rowId}')">
@@ -1618,7 +1807,7 @@
                             <td>${new Date(app.created_at).toLocaleDateString()}</td>
                         </tr>
                         <tr class="applicant-details-row" id="details-${rowId}">
-                            <td colspan="8">
+                            <td colspan="7">
                                 <div class="applicant-details-grid">
                                     <div class="detail-item">
                                         <div class="label">Full Name</div>
@@ -1686,7 +1875,7 @@
                                     </div>
                                     <div class="detail-item" style="grid-column: 1 / -1;">
                                         <div class="label">Application Source</div>
-                                        <div class="value">${source === 'referral' ? '🔗 Referral Link' : '🌐 Public'}</div>
+                                        <div class="value">${app.application_source === 'link' ? '🔗 Referral Link' : '🌐 Public'}</div>
                                     </div>
                                 </div>
                             </td>
@@ -1730,35 +1919,13 @@
                 await updateStatus(applicationId, newStatus, rowId);
             };
 
-            // ============================================================
-            // COPY LINK
-            // ============================================================
-            copyLinkBtn.addEventListener('click', function() {
-                const link = generatedLinkText.textContent;
-                if (navigator.clipboard) {
-                    navigator.clipboard.writeText(link).then(() => showToast('success', 'Link copied!'))
-                        .catch(() => fallbackCopy(link));
-                } else {
-                    fallbackCopy(link);
-                }
-            });
+            window.deactivateLink = async function(linkId) {
+                await deactivateLink(linkId);
+            };
 
-            function fallbackCopy(text) {
-                const textarea = document.createElement('textarea');
-                textarea.value = text;
-                textarea.style.position = 'fixed';
-                textarea.style.top = '-9999px';
-                textarea.style.left = '-9999px';
-                document.body.appendChild(textarea);
-                textarea.select();
-                try {
-                    document.execCommand('copy');
-                    showToast('success', 'Link copied!');
-                } catch (e) {
-                    showToast('error', 'Failed to copy.');
-                }
-                document.body.removeChild(textarea);
-            }
+            window.copyLink = function(linkText) {
+                copyLinkToClipboard(linkText);
+            };
 
             // ============================================================
             // EVENT LISTENERS
@@ -1767,6 +1934,7 @@
             logoutBtn.addEventListener('click', handleLogout);
             
             toggleGenerateBtn.addEventListener('click', function() {
+                if (this.disabled) return;
                 generateForm.classList.toggle('active');
             });
             
@@ -1778,6 +1946,11 @@
             
             resetLinkBtn.addEventListener('click', function() {
                 generatedLinkContainer.classList.remove('active');
+            });
+
+            copyLinkBtn.addEventListener('click', function() {
+                const link = generatedLinkText.textContent;
+                copyLinkToClipboard(link);
             });
 
             refreshBtn.addEventListener('click', function() {
