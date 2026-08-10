@@ -1,0 +1,12 @@
+{
+  "name": "heritage-program",
+  "version": "1.0.0",
+  "description": "Heritage Program Grants Application",
+  "type": "module",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0"
+  },
+  "engines": {
+    "node": ">=18.x"
+  }
+}
