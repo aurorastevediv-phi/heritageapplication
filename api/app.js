@@ -29,11 +29,11 @@ const handlers = {
     // ============================================================
     async submit(req, res) {
         try {
-            const { application, ref } = req.body;
+            const { application, token } = req.body;
 
             console.log('📥 Submit received:', { 
                 hasApplication: !!application, 
-                hasRef: !!ref,
+                hasToken: !!token,
                 email: application?.email 
             });
 
@@ -74,40 +74,56 @@ const handlers = {
                 return res.status(400).json({ success: false, error: 'An application with this email already exists.' });
             }
 
-            // Handle referral link
-            let isReferred = false;
+            // Handle link validation - NEW: uses admin_links table
+            let isLinkApp = false;
             let adminId = null;
-            let referralLinkId = null;
+            let linkId = null;
             let adminName = null;
+            let adminChatId = null;
+            let linkIdentifier = null;
 
-            if (ref) {
-                // Validate the referral link
+            if (token) {
+                // Check if link exists and is active
                 const { data: linkData, error: linkError } = await supabase
-                    .from('referral_links')
-                    .select('*, admins!inner(id, full_name)')
-                    .eq('link_identifier', ref)
-                    .eq('is_used', false)
+                    .from('admin_links')
+                    .select('*, admins!inner(id, full_name, telegram_chat_id)')
+                    .eq('link_identifier', token)
+                    .eq('is_active', true)
                     .single();
 
                 if (linkError || !linkData) {
+                    console.log('❌ Link validation failed:', linkError?.message);
                     return res.status(400).json({ 
                         success: false, 
-                        error: 'Invalid or already used referral link' 
+                        error: 'Invalid or inactive link' 
                     });
                 }
 
-                // Mark the link as used
-                await supabase
-                    .from('referral_links')
-                    .update({ is_used: true, used_at: new Date().toISOString() })
+                // Link is valid and active - update usage count
+                const { error: updateError } = await supabase
+                    .from('admin_links')
+                    .update({ 
+                        updated_at: new Date().toISOString()
+                    })
                     .eq('id', linkData.id);
 
-                isReferred = true;
-                adminId = linkData.admin_id;
-                referralLinkId = linkData.id;
-                adminName = linkData.admins?.full_name || null;
+                if (updateError) {
+                    console.warn('⚠️ Failed to update link usage:', updateError);
+                    // Continue anyway - don't block submission
+                }
 
-                console.log('📥 Referral link used:', ref, 'by admin:', adminId);
+                isLinkApp = true;
+                adminId = linkData.admin_id;
+                linkId = linkData.id;
+                linkIdentifier = linkData.link_identifier;
+                adminName = linkData.admins?.full_name || null;
+                adminChatId = linkData.admins?.telegram_chat_id || null;
+
+                console.log('✅ Link validated:', { 
+                    linkId: linkData.id, 
+                    adminName: adminName,
+                    adminChatId: adminChatId
+                });
             }
 
             // Prepare data
@@ -141,10 +157,10 @@ const handlers = {
                 status: 'pending',
                 created_at: application.created_at || new Date().toISOString(),
                 updated_at: new Date().toISOString(),
-                assigned_admin_id: adminId,
-                referral_link_id: referralLinkId,
-                is_referred: isReferred,
-                application_source: isReferred ? 'referral' : 'public'
+                admin_id: adminId,
+                link_id: linkId,
+                is_link_application: isLinkApp,
+                application_source: isLinkApp ? 'link' : 'public'
             };
 
             // Insert into Supabase
@@ -159,11 +175,14 @@ const handlers = {
 
             console.log('✅ Application saved:', dbData.case_id);
 
+            // Return success with caseId and link info for browser-side Telegram
             return res.status(200).json({
                 success: true,
                 caseId: application.case_id,
-                isReferred: isReferred,
+                isLinkApp: isLinkApp,
                 adminName: adminName,
+                adminChatId: adminChatId,
+                linkIdentifier: linkIdentifier,
                 message: 'Application submitted successfully'
             });
 
@@ -242,35 +261,39 @@ const handlers = {
     },
 
     // ============================================================
-    // GET /validate-ref - Validate referral link
+    // GET /validate - Validate link (NEW - uses admin_links)
     // ============================================================
-    async validateRef(req, res) {
+    async validate(req, res) {
         try {
-            const { ref } = req.query;
+            const { token } = req.query;
 
-            if (!ref) {
-                return res.status(400).json({ success: false, error: 'Referral code required' });
+            if (!token) {
+                return res.status(400).json({ success: false, error: 'Token required' });
             }
 
+            // Check if link exists and is active
             const { data: linkData, error: linkError } = await supabase
-                .from('referral_links')
-                .select('*, admins!inner(id, full_name)')
-                .eq('link_identifier', ref)
+                .from('admin_links')
+                .select('*, admins!inner(id, full_name, telegram_chat_id)')
+                .eq('link_identifier', token)
                 .single();
 
             if (linkError || !linkData) {
+                console.log('❌ Link not found:', token);
                 return res.status(404).json({ 
                     success: false, 
-                    error: 'Invalid referral link',
-                    claimed: true 
+                    error: 'Invalid link',
+                    inactive: true
                 });
             }
 
-            if (linkData.is_used) {
+            // Check if link is active
+            if (!linkData.is_active) {
+                console.log('❌ Link is inactive:', token);
                 return res.status(410).json({
                     success: false,
-                    error: 'This referral link has already been used',
-                    claimed: true,
+                    error: 'This link has been deactivated',
+                    inactive: true,
                     data: {
                         referral_name: linkData.referral_name || null,
                         referral_amount: linkData.referral_amount || null
@@ -278,19 +301,23 @@ const handlers = {
                 });
             }
 
+            // Link is valid and active
+            console.log('✅ Link validated successfully:', token);
+
             return res.status(200).json({
                 success: true,
                 data: {
                     link_id: linkData.id,
                     admin_id: linkData.admin_id,
                     admin_name: linkData.admins?.full_name || null,
+                    admin_chat_id: linkData.admins?.telegram_chat_id || null,
                     referral_name: linkData.referral_name || null,
                     referral_amount: linkData.referral_amount || null
                 }
             });
 
         } catch (error) {
-            console.error('❌ Validate ref error:', error);
+            console.error('❌ Validate error:', error);
             return res.status(500).json({ success: false, error: error.message || 'Internal server error' });
         }
     }
@@ -326,8 +353,8 @@ export default async function handler(req, res) {
                 handlerFn = handlers.status;
             } else if (pathname === '/stats' || pathname === '/api/stats') {
                 handlerFn = handlers.stats;
-            } else if (pathname === '/validate-ref' || pathname === '/api/applications/validate-ref') {
-                handlerFn = handlers.validateRef;
+            } else if (pathname === '/validate' || pathname === '/api/applications/validate') {
+                handlerFn = handlers.validate;
             }
         }
 
