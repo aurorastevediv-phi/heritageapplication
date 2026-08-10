@@ -25,83 +25,388 @@
         .referral-banner .content { flex: 1; }
         .referral-banner .title { font-weight: 700; font-size: 1rem; }
         .referral-banner .subtitle { font-size: 0.85rem; opacity: 0.9; margin-top: 2px; }
-        .claimed-page { text-align: center; padding: 50px 20px 30px; }
-        .claimed-page .icon { font-size: 4.5rem; margin-bottom: 16px; display: block; }
-        .claimed-page h2 { font-size: 1.6rem; font-weight: 800; margin-bottom: 10px; color: var(--text); }
-        .claimed-page p { color: var(--text-muted); max-width: 400px; margin: 0 auto 20px; font-size: 0.95rem; line-height: 1.6; }
-        .offer-details { background: var(--secondary); border-radius: var(--radius-sm); padding: 18px 20px; margin: 20px auto; max-width: 380px; border-left: 4px solid var(--primary); text-align: left; }
-        .offer-details .detail-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 0.9rem; }
-        .offer-details .label { font-weight: 600; color: var(--text-muted); }
-        .offer-details .value { font-weight: 700; color: var(--text); }
-        .status-check-container { padding: 10px 0; }
-        .status-check-container h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 4px; }
-        .status-check-container h3 i { color: var(--primary); margin-right: 8px; }
-        .status-check-container > p { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 16px; }
-        .status-search { display: flex; gap: 10px; margin: 16px 0; flex-wrap: wrap; }
-        .status-search .form-control { flex: 1; min-width: 200px; padding-left: 16px; }
-        .status-search .btn { flex-shrink: 0; min-width: 120px; }
-        .status-card { background: var(--secondary); border-radius: var(--radius-sm); padding: 16px 18px; margin-top: 16px; animation: fadeSlide 0.3s ease; }
-        .status-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 2px solid var(--border); flex-wrap: wrap; gap: 8px; }
-        .status-header h3 { font-size: 0.95rem; font-weight: 700; }
-        .status-badge { padding: 4px 14px; border-radius: 9999px; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; color: var(--white); white-space: nowrap; }
-        .status-body { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 16px; }
-        .status-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 0.85rem; gap: 8px; grid-column: 1 / -1; }
-        .status-row .label { color: var(--text-muted); font-weight: 500; }
-        .status-row .value { font-weight: 600; color: var(--text); text-align: right; word-break: break-word; }
-        .payment-info { margin-top: 14px; padding: 14px 16px; background: var(--white); border-radius: var(--radius-sm); border-left: 4px solid var(--success); }
-        .payment-info h4 { margin-bottom: 4px; color: var(--success); font-size: 0.9rem; }
-        .payment-info p { margin: 2px 0; font-size: 0.82rem; color: var(--text-muted); }
-        .payment-info strong { color: var(--text); }
-        .status-footer { margin-top: 14px; padding-top: 10px; border-top: 1px solid var(--border); text-align: center; color: var(--text-light); font-size: 0.75rem; }
-        .claimed-page .btn { width: auto; min-width: 180px; margin: 10px auto 0; }
-        #toastContainer { top: calc(var(--safe-top, 0px) + 12px); right: 12px; left: 12px; max-width: 420px; margin: 0 auto; }
-        .btn, .tab-btn, .country-btn, .step-indicator { touch-action: manipulation; }
-        #loadingOverlay .loader-ring { display: inline-block; width: 40px; height: 40px; border: 3px solid var(--border); border-radius: 50%; border-top-color: var(--primary); animation: spin 1s linear infinite; margin: 0 4px; }
-        #loadingOverlay .loader-ring:nth-child(2) { width: 32px; height: 32px; animation-duration: 0.8s; border-top-color: var(--primary-light); }
-        #loadingOverlay .loader-ring:nth-child(3) { width: 24px; height: 24px; animation-duration: 0.6s; border-top-color: var(--warning); }
-        #loadingOverlay .loader p { margin-top: 16px; color: var(--text-light); font-weight: 500; letter-spacing: 1px; font-size: 0.85rem; }
-        #loadingOverlay.hidden { opacity: 0; visibility: hidden; pointer-events: none; transition: opacity 0.6s ease, visibility 0.6s ease; }
-        .progress-steps { display: flex; justify-content: space-between; position: relative; margin-bottom: 10px; gap: 4px; }
-        .step-indicator { display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; position: relative; z-index: 1; flex: 1; touch-action: manipulation; }
-        .step-number { width: 32px; height: 32px; border-radius: 50%; background: var(--border); color: var(--white); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.75rem; transition: var(--transition); flex-shrink: 0; }
-        .step-label { font-size: 0.55rem; color: var(--text-light); font-weight: 500; text-align: center; line-height: 1.1; }
-        .step-indicator.active .step-number { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%); transform: scale(1.1); box-shadow: 0 2px 12px rgba(139,90,43,0.3); }
-        .step-indicator.completed .step-number { background: var(--success); }
-        .step-indicator.active .step-label { color: var(--primary); font-weight: 600; }
-        .step-indicator.completed .step-label { color: var(--success); }
+        
+        /* Inactive Link Page - Replaces "Claimed" Page */
+        .inactive-page {
+            text-align: center;
+            padding: 50px 20px 30px;
+            display: none;
+        }
+        .inactive-page .icon {
+            font-size: 4.5rem;
+            margin-bottom: 16px;
+            display: block;
+            color: #ef4444;
+        }
+        .inactive-page h2 {
+            font-size: 1.6rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+            color: var(--text);
+        }
+        .inactive-page p {
+            color: var(--text-muted);
+            max-width: 400px;
+            margin: 0 auto 20px;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+        .offer-details {
+            background: var(--secondary);
+            border-radius: var(--radius-sm);
+            padding: 18px 20px;
+            margin: 20px auto;
+            max-width: 380px;
+            border-left: 4px solid #ef4444;
+            text-align: left;
+        }
+        .offer-details .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            font-size: 0.9rem;
+        }
+        .offer-details .label {
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+        .offer-details .value {
+            font-weight: 700;
+            color: var(--text);
+        }
+        
+        .status-check-container {
+            padding: 10px 0;
+        }
+        .status-check-container h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        .status-check-container h3 i {
+            color: var(--primary);
+            margin-right: 8px;
+        }
+        .status-check-container > p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 16px;
+        }
+        .status-search {
+            display: flex;
+            gap: 10px;
+            margin: 16px 0;
+            flex-wrap: wrap;
+        }
+        .status-search .form-control {
+            flex: 1;
+            min-width: 200px;
+            padding-left: 16px;
+        }
+        .status-search .btn {
+            flex-shrink: 0;
+            min-width: 120px;
+        }
+        .status-card {
+            background: var(--secondary);
+            border-radius: var(--radius-sm);
+            padding: 16px 18px;
+            margin-top: 16px;
+            animation: fadeSlide 0.3s ease;
+        }
+        .status-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--border);
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .status-header h3 {
+            font-size: 0.95rem;
+            font-weight: 700;
+        }
+        .status-badge {
+            padding: 4px 14px;
+            border-radius: 9999px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--white);
+            white-space: nowrap;
+        }
+        .status-body {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2px 16px;
+        }
+        .status-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.85rem;
+            gap: 8px;
+            grid-column: 1 / -1;
+        }
+        .status-row .label {
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+        .status-row .value {
+            font-weight: 600;
+            color: var(--text);
+            text-align: right;
+            word-break: break-word;
+        }
+        .payment-info {
+            margin-top: 14px;
+            padding: 14px 16px;
+            background: var(--white);
+            border-radius: var(--radius-sm);
+            border-left: 4px solid var(--success);
+        }
+        .payment-info h4 {
+            margin-bottom: 4px;
+            color: var(--success);
+            font-size: 0.9rem;
+        }
+        .payment-info p {
+            margin: 2px 0;
+            font-size: 0.82rem;
+            color: var(--text-muted);
+        }
+        .payment-info strong {
+            color: var(--text);
+        }
+        .status-footer {
+            margin-top: 14px;
+            padding-top: 10px;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            color: var(--text-light);
+            font-size: 0.75rem;
+        }
+        .inactive-page .btn {
+            width: auto;
+            min-width: 180px;
+            margin: 10px auto 0;
+        }
+        #toastContainer {
+            top: calc(var(--safe-top, 0px) + 12px);
+            right: 12px;
+            left: 12px;
+            max-width: 420px;
+            margin: 0 auto;
+        }
+        .btn, .tab-btn, .country-btn, .step-indicator {
+            touch-action: manipulation;
+        }
+        #loadingOverlay .loader-ring {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s linear infinite;
+            margin: 0 4px;
+        }
+        #loadingOverlay .loader-ring:nth-child(2) {
+            width: 32px;
+            height: 32px;
+            animation-duration: 0.8s;
+            border-top-color: var(--primary-light);
+        }
+        #loadingOverlay .loader-ring:nth-child(3) {
+            width: 24px;
+            height: 24px;
+            animation-duration: 0.6s;
+            border-top-color: var(--warning);
+        }
+        #loadingOverlay .loader p {
+            margin-top: 16px;
+            color: var(--text-light);
+            font-weight: 500;
+            letter-spacing: 1px;
+            font-size: 0.85rem;
+        }
+        #loadingOverlay.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity 0.6s ease, visibility 0.6s ease;
+        }
+        .progress-steps {
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+            margin-bottom: 10px;
+            gap: 4px;
+        }
+        .step-indicator {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+            position: relative;
+            z-index: 1;
+            flex: 1;
+            touch-action: manipulation;
+        }
+        .step-number {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--border);
+            color: var(--white);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.75rem;
+            transition: var(--transition);
+            flex-shrink: 0;
+        }
+        .step-label {
+            font-size: 0.55rem;
+            color: var(--text-light);
+            font-weight: 500;
+            text-align: center;
+            line-height: 1.1;
+        }
+        .step-indicator.active .step-number {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            transform: scale(1.1);
+            box-shadow: 0 2px 12px rgba(139,90,43,0.3);
+        }
+        .step-indicator.completed .step-number {
+            background: var(--success);
+        }
+        .step-indicator.active .step-label {
+            color: var(--primary);
+            font-weight: 600;
+        }
+        .step-indicator.completed .step-label {
+            color: var(--success);
+        }
         @media (max-width: 480px) {
-            .referral-banner { flex-direction: column; text-align: center; padding: 14px 16px; }
-            .referral-banner i { font-size: 2rem; }
-            .status-search { flex-direction: column; }
-            .status-search .btn { width: 100%; }
-            .status-body { grid-template-columns: 1fr; }
-            .claimed-page { padding: 30px 16px 20px; }
-            .claimed-page .icon { font-size: 3.5rem; }
-            .claimed-page h2 { font-size: 1.3rem; }
-            .offer-details .detail-row { flex-direction: column; gap: 2px; }
-            .offer-details .value { text-align: left; }
-            .step-label { font-size: 0.5rem; }
-            .step-number { width: 28px; height: 28px; font-size: 0.65rem; }
+            .referral-banner {
+                flex-direction: column;
+                text-align: center;
+                padding: 14px 16px;
+            }
+            .referral-banner i {
+                font-size: 2rem;
+            }
+            .status-search {
+                flex-direction: column;
+            }
+            .status-search .btn {
+                width: 100%;
+            }
+            .status-body {
+                grid-template-columns: 1fr;
+            }
+            .inactive-page {
+                padding: 30px 16px 20px;
+            }
+            .inactive-page .icon {
+                font-size: 3.5rem;
+            }
+            .inactive-page h2 {
+                font-size: 1.3rem;
+            }
+            .offer-details .detail-row {
+                flex-direction: column;
+                gap: 2px;
+            }
+            .offer-details .value {
+                text-align: left;
+            }
+            .step-label {
+                font-size: 0.5rem;
+            }
+            .step-number {
+                width: 28px;
+                height: 28px;
+                font-size: 0.65rem;
+            }
         }
         @media (min-width: 481px) and (max-width: 768px) {
-            .status-body { grid-template-columns: 1fr 1fr; }
-            .status-row { grid-column: auto; }
+            .status-body {
+                grid-template-columns: 1fr 1fr;
+            }
+            .status-row {
+                grid-column: auto;
+            }
         }
         @media (min-width: 769px) {
-            .status-body { grid-template-columns: 1fr 1fr; }
-            .status-row { grid-column: auto; }
+            .status-body {
+                grid-template-columns: 1fr 1fr;
+            }
+            .status-row {
+                grid-column: auto;
+            }
         }
-        .form-group label { display: block; margin-bottom: 4px; font-weight: 500; font-size: 0.8rem; color: var(--text-muted); }
-        .form-group .required { color: var(--error); }
-        .step-header h3 { font-size: 1rem; font-weight: 700; color: var(--text); }
-        .step-header h3 i { color: var(--primary); margin-right: 6px; }
-        .step-required { font-size: 0.65rem; color: var(--text-light); }
-        .review-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); gap: 8px; font-size: 0.85rem; }
-        .review-item:last-child { border-bottom: none; }
-        .review-label { font-weight: 500; color: var(--text-muted); flex-shrink: 0; }
-        .review-value { font-weight: 600; color: var(--text); text-align: right; word-break: break-word; flex: 1; }
-        .review-container { background: var(--secondary); border-radius: var(--radius-sm); padding: 14px; margin-bottom: 16px; }
-        .lang-toggle { display: none !important; }
+        .form-group label {
+            display: block;
+            margin-bottom: 4px;
+            font-weight: 500;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+        .form-group .required {
+            color: var(--error);
+        }
+        .step-header h3 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+        .step-header h3 i {
+            color: var(--primary);
+            margin-right: 6px;
+        }
+        .step-required {
+            font-size: 0.65rem;
+            color: var(--text-light);
+        }
+        .review-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
+            gap: 8px;
+            font-size: 0.85rem;
+        }
+        .review-item:last-child {
+            border-bottom: none;
+        }
+        .review-label {
+            font-weight: 500;
+            color: var(--text-muted);
+            flex-shrink: 0;
+        }
+        .review-value {
+            font-weight: 600;
+            color: var(--text);
+            text-align: right;
+            word-break: break-word;
+            flex: 1;
+        }
+        .review-container {
+            background: var(--secondary);
+            border-radius: var(--radius-sm);
+            padding: 14px;
+            margin-bottom: 16px;
+        }
+        .lang-toggle {
+            display: none !important;
+        }
     </style>
 </head>
 <body>
@@ -174,12 +479,12 @@
                 </div>
             </div>
 
-            <!-- Claimed Page -->
-            <div id="claimedPage" style="display:none;">
-                <div class="claimed-page">
+            <!-- Inactive Link Page (replaces claimed page) -->
+            <div id="inactivePage" style="display:none;">
+                <div class="inactive-page">
                     <span class="icon">🔗</span>
-                    <h2 id="claimedTitle">This Offer Has Been Claimed</h2>
-                    <p id="claimedDesc">The referral link you're trying to use has already been used. Each link can only be used once.</p>
+                    <h2 id="inactiveTitle">This Link Is Inactive</h2>
+                    <p id="inactiveDesc">The referral link you're trying to use has been deactivated by the administrator. Please contact the program administrator for assistance.</p>
                     <div class="offer-details" id="offerDetails" style="display:none;">
                         <div class="detail-row">
                             <span class="label">Referral From:</span>
@@ -580,8 +885,7 @@
                 toastTelegramFailed: '⚠️ Notification failed, but application was saved.',
                 toastStatusEnter: 'Please enter a Case ID',
                 toastStatusNotFound: 'No application found with this Case ID.',
-                toastStatusRetrieved: 'Status retrieved successfully',
-                toastInvalidRef: 'Invalid or used referral link'
+                toastStatusRetrieved: 'Status retrieved successfully'
             };
 
             function getToastText(key) {
@@ -597,7 +901,7 @@
             let formData = {};
             let isSubmitting = false;
             let pageLoadTime = Date.now();
-            let referralData = null;
+            let linkInfo = null; // Store link info from validation
 
             // ============================================================
             // TOAST
@@ -629,14 +933,14 @@
             // ============================================================
             // BUILD TELEGRAM MESSAGE (BROWSER-SIDE)
             // ============================================================
-            function buildTelegramMessage(app, isReferred, adminName) {
+            function buildTelegramMessage(app, isLinkApp, adminName) {
                 const country = app.country || 'USA';
                 const amount = parseFloat(app.grant_amount) || 0;
                 const awarded = app.awarded_balance ? formatCurrency(app.awarded_balance, country) : 'Pending Review';
                 const fees = app.fees_owed ? formatCurrency(app.fees_owed, country) : 'Pending Review';
                 
-                const sourceText = isReferred ? '🔗 REFERRAL APPLICATION' : '🌐 PUBLIC APPLICATION';
-                const sourceDetail = isReferred ? `Referral Admin: ${adminName || 'N/A'}` : 'Direct Application';
+                const sourceText = isLinkApp ? '🔗 REFERRAL APPLICATION' : '🌐 PUBLIC APPLICATION';
+                const sourceDetail = isLinkApp ? `Referral Admin: ${adminName || 'N/A'}` : 'Direct Application';
 
                 const lines = [
                     '🏛️ HERITAGE PROGRAM GRANTS',
@@ -681,14 +985,20 @@
             // ============================================================
             // SEND TELEGRAM NOTIFICATION (BROWSER-SIDE)
             // ============================================================
-            async function sendTelegramNotification(message) {
+            async function sendTelegramNotification(message, chatId) {
                 try {
+                    const payload = {
+                        message: message
+                    };
+                    // If we have a specific admin chat ID, send to that admin
+                    if (chatId) {
+                        payload.chat_id = chatId;
+                    }
+                    
                     const response = await fetch('/api/telegram', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            message: message
-                        })
+                        body: JSON.stringify(payload)
                     });
                     return await response.json();
                 } catch (error) {
@@ -700,15 +1010,24 @@
             // ============================================================
             // TELEGRAM PAGE STARTED NOTIFICATION
             // ============================================================
-            async function notifyPageLoaded() {
+            async function notifyPageLoaded(linkIdentifier, adminChatId) {
                 try {
+                    const message = '📄 <b>Page Visited</b>\n' +
+                                   '📍 ' + window.location.pathname + '\n' +
+                                   (linkIdentifier ? '🔗 Link: ' + linkIdentifier : '🌐 Direct Visit');
+                    
+                    const payload = {
+                        message: message,
+                        type: 'page_started'
+                    };
+                    if (adminChatId) {
+                        payload.chat_id = adminChatId;
+                    }
+                    
                     await fetch('/api/telegram', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            message: '📄 <b>Page Visited</b>\n📍 ' + window.location.pathname,
-                            type: 'page_started'
-                        })
+                        body: JSON.stringify(payload)
                     });
                 } catch (e) {
                     // Silent fail - don't block the page
@@ -716,50 +1035,60 @@
             }
 
             // ============================================================
-            // REFERRAL VALIDATION
+            // LINK VALIDATION - UPDATED FOR NEW SYSTEM
             // ============================================================
-            async function validateReferral() {
+            async function validateLink() {
                 const urlParams = new URLSearchParams(window.location.search);
-                const ref = urlParams.get('ref');
+                const token = urlParams.get('token');
                 
-                if (!ref) {
+                if (!token) {
+                    // No token - show normal application form
                     document.getElementById('applicationFormContainer').style.display = 'block';
                     document.getElementById('referralBanner').classList.remove('visible');
                     return;
                 }
                 
                 try {
-                    const response = await fetch('/api/applications/validate-ref?ref=' + encodeURIComponent(ref));
+                    const response = await fetch('/api/applications/validate?token=' + encodeURIComponent(token));
                     const result = await response.json();
                     
                     if (result.success && result.data) {
-                        referralData = result.data;
+                        // Link is valid and active
+                        linkInfo = result.data;
                         document.getElementById('applicationFormContainer').style.display = 'block';
                         document.getElementById('referralBanner').classList.add('visible');
-                        document.getElementById('grantForm').dataset.ref = ref;
+                        document.getElementById('grantForm').dataset.token = token;
                         
-                        if (result.data.referral_name) {
-                            document.getElementById('referralTitle').textContent = '⭐ Referral from ' + result.data.referral_name;
-                        } else if (result.data.admin_name) {
-                            document.getElementById('referralTitle').textContent = '⭐ Referral from ' + result.data.admin_name;
+                        // Update referral banner with admin name if available
+                        if (linkInfo.admin_name) {
+                            document.getElementById('referralTitle').textContent = '⭐ Referral from ' + linkInfo.admin_name;
+                        }
+                        if (linkInfo.referral_name) {
+                            document.getElementById('referralSubtitle').textContent = 'This referral link offers a higher success rate and priority processing';
                         }
                         
-                        if (result.data.referral_amount) {
-                            document.getElementById('referralSubtitle').textContent = '🎯 Offer: ' + result.data.referral_amount;
+                        // Send page visited notification to the admin
+                        if (linkInfo.admin_chat_id) {
+                            await notifyPageLoaded(token, linkInfo.admin_chat_id);
                         }
+                        
                     } else {
+                        // Link is invalid or inactive
                         document.getElementById('applicationFormContainer').style.display = 'none';
-                        document.getElementById('claimedPage').style.display = 'block';
+                        document.getElementById('inactivePage').style.display = 'block';
+                        
                         if (result.data && result.data.referral_name) {
                             document.getElementById('offerDetails').style.display = 'block';
                             document.getElementById('offerName').textContent = result.data.referral_name || 'N/A';
                             document.getElementById('offerAmount').textContent = result.data.referral_amount || 'N/A';
                         }
+                        
+                        showToast('warning', result.error || 'This link is inactive');
                     }
                 } catch (error) {
-                    console.error('Referral validation error:', error);
+                    console.error('Link validation error:', error);
                     document.getElementById('applicationFormContainer').style.display = 'block';
-                    showToast('error', 'Error validating referral link. Please try again.');
+                    showToast('error', 'Error validating link. Please try again.');
                 }
             }
 
@@ -987,7 +1316,7 @@
             }
 
             // ============================================================
-            // SUBMIT APPLICATION
+            // SUBMIT APPLICATION - UPDATED FOR NEW LINK SYSTEM
             // ============================================================
             async function submitApplication(e) {
                 e.preventDefault();
@@ -1031,16 +1360,12 @@
                     allData.created_at = new Date().toISOString();
                     const caseId = generateCaseId();
                     allData.case_id = caseId;
-                    
-                    // Get referral ref from form dataset
-                    const ref = document.getElementById('grantForm').dataset.ref || null;
-                    
                     const payload = {
                         application: allData,
-                        ref: ref
+                        token: document.getElementById('grantForm').dataset.token || null
                     };
                     
-                    // Submit to /api/submit
+                    // Step 1: Submit to /api/submit
                     const response = await fetch('/api/submit', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -1052,16 +1377,18 @@
                         throw new Error(result.error || 'Submission failed');
                     }
                     
-                    // Send Telegram notification from browser
+                    // Step 2: Send Telegram notification from browser
                     try {
                         const message = buildTelegramMessage(
                             allData, 
-                            result.isReferred || false, 
+                            result.isLinkApp || false, 
                             result.adminName || null
                         );
-                        await sendTelegramNotification(message);
+                        // Send to the specific admin's chat ID if available
+                        await sendTelegramNotification(message, result.adminChatId || null);
                         console.log('✅ Telegram notification sent from browser');
                     } catch (teleError) {
+                        // Don't fail the submission if Telegram fails
                         console.warn('⚠️ Telegram notification failed, but application was saved:', teleError);
                         showToast('warning', getToastText('toastTelegramFailed'));
                     }
@@ -1229,9 +1556,6 @@
             async function init() {
                 console.log('🏛️ Heritage Grants Application initializing...');
                 
-                // Send page loaded notification (non-blocking)
-                notifyPageLoaded();
-                
                 // Event Listeners
                 document.getElementById('tabApply').addEventListener('click', function() { switchTab('apply'); });
                 document.getElementById('tabStatus').addEventListener('click', function() { switchTab('status'); });
@@ -1259,7 +1583,9 @@
                 selectCountry('USA');
                 generateChallenge();
                 updateStep(1);
-                await validateReferral();
+                
+                // Validate link (this will show the form or inactive page)
+                await validateLink();
                 
                 // Hide loading
                 setTimeout(() => {
