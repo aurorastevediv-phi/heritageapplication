@@ -22,7 +22,6 @@ function logError(message, error) {
 }
 
 function getBaseUrl() {
-    // Priority: CUSTOM_DOMAIN > VERCEL_PROJECT_PRODUCTION_URL > VERCEL_URL > fallback
     const customDomain = process.env.CUSTOM_DOMAIN;
     const projectUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL;
     const vercelUrl = process.env.VERCEL_URL;
@@ -129,7 +128,6 @@ async function handleProfile(req, res) {
         log('User verified:', user.email);
         log('User ID:', user.id);
 
-        // Query the admins table using service role (bypasses RLS)
         const { data: admin, error: adminError } = await supabase
             .from('admins')
             .select('*')
@@ -147,7 +145,6 @@ async function handleProfile(req, res) {
         if (!admin) {
             log('Admin not found for user ID:', user.id);
             
-            // Try to find by email as fallback
             log('Trying to find admin by email:', user.email);
             const { data: adminByEmail, error: emailError } = await supabase
                 .from('admins')
@@ -211,7 +208,6 @@ async function handleProfile(req, res) {
 
         log('Admin found:', admin.email);
 
-        // Remove sensitive data before sending
         delete admin.auth_user_id;
 
         return res.status(200).json({
@@ -289,7 +285,6 @@ async function handleLinks(req, res) {
                 });
             }
 
-            // Count active links
             const activeLinks = links ? links.filter(link => link.is_active === true).length : 0;
 
             log('Links fetched:', links ? links.length : 0, 'Active:', activeLinks);
@@ -306,7 +301,6 @@ async function handleLinks(req, res) {
 
         // POST - Generate new link
         if (req.method === 'POST') {
-            // Check current active links count
             const { data: existingLinks, error: countError } = await supabase
                 .from('admin_links')
                 .select('id')
@@ -381,7 +375,6 @@ async function handleLinks(req, res) {
 
         // DELETE - Deactivate link
         if (req.method === 'DELETE') {
-            // Extract link ID from URL path
             const urlParts = req.url.split('/');
             const linkId = urlParts[urlParts.length - 1];
 
@@ -394,7 +387,6 @@ async function handleLinks(req, res) {
 
             log('Deactivating link:', linkId);
 
-            // Verify link belongs to this admin
             const { data: link, error: linkCheckError } = await supabase
                 .from('admin_links')
                 .select('*')
@@ -434,7 +426,6 @@ async function handleLinks(req, res) {
                 });
             }
 
-            // Get updated active count
             const { data: remainingLinks, error: countError } = await supabase
                 .from('admin_links')
                 .select('id')
@@ -576,7 +567,6 @@ async function handleUpdateStatus(req, res) {
 
         log('User verified for status update:', user.email);
 
-        // Verify admin exists
         const { data: admin, error: adminError } = await supabase
             .from('admins')
             .select('id')
@@ -607,7 +597,6 @@ async function handleUpdateStatus(req, res) {
             });
         }
 
-        // Valid statuses
         const validStatuses = ['pending', 'approved', 'rejected', 'paid'];
         if (!validStatuses.includes(status)) {
             return res.status(400).json({ 
@@ -618,7 +607,6 @@ async function handleUpdateStatus(req, res) {
 
         log('Updating application:', applicationId, 'to status:', status);
 
-        // Update the application
         const { error: updateError } = await supabase
             .from('grants_applications')
             .update({ 
@@ -674,7 +662,7 @@ export default async function handler(req, res) {
 
         let handlerFn = null;
 
-        // Route based on exact path
+        // Route based on exact path - MATCHING YOUR ORIGINAL WORKING VERSION
         if (pathname === '/api/admin/config') {
             handlerFn = handleConfig;
         } else if (pathname === '/api/admin/profile') {
@@ -686,7 +674,6 @@ export default async function handler(req, res) {
         } else if (pathname === '/api/admin/update-status') {
             handlerFn = handleUpdateStatus;
         } else if (pathname.startsWith('/api/admin/links/') && req.method === 'DELETE') {
-            // Handle DELETE /api/admin/links/:id
             handlerFn = handleLinks;
         }
 
