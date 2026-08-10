@@ -29,20 +29,22 @@
       "source": "/api/(.*)",
       "headers": [
         { "key": "Access-Control-Allow-Origin", "value": "*" },
-        { "key": "Access-Control-Allow-Methods", "value": "GET, POST, OPTIONS" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET, POST, DELETE, OPTIONS" },
         { "key": "Access-Control-Allow-Headers", "value": "Content-Type, Authorization" }
       ]
     }
   ],
   "rewrites": [
+    { "source": "/api/admin/config", "destination": "/api/admin.js" },
+    { "source": "/api/admin/profile", "destination": "/api/admin.js" },
+    { "source": "/api/admin/links", "destination": "/api/admin.js" },
+    { "source": "/api/admin/applications", "destination": "/api/admin.js" },
+    { "source": "/api/admin/update-status", "destination": "/api/admin.js" },
     { "source": "/api/submit", "destination": "/api/app.js" },
     { "source": "/api/status", "destination": "/api/app.js" },
     { "source": "/api/stats", "destination": "/api/app.js" },
     { "source": "/api/applications/validate", "destination": "/api/app.js" },
-    { "source": "/api/admin/profile", "destination": "/api/admin.js" },
-    { "source": "/api/admin/tokens", "destination": "/api/admin.js" },
-    { "source": "/api/admin/applications", "destination": "/api/admin.js" },
-    { "source": "/api/admin/config", "destination": "/api/admin.js" },
+    { "source": "/api/telegram", "destination": "/api/telegram.js" },
     { "source": "/admin", "destination": "/admin.html" },
     { "source": "/apply", "destination": "/application.html" },
     { "source": "/", "destination": "/index.html" }
