@@ -1,13 +1,25 @@
-// api/admin.js
-// Handles ALL admin functions: profile, links, applications, config, update-status
+// api/admin.js - Using dynamic import to avoid startup crashes
 
-import { createClient } from '@supabase/supabase-js';
+let supabaseClient = null;
+let createClientFn = null;
 
-const SUPABASE_URL = process.env.SUPABASE_URL;
-const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-// Create Supabase client with service role (bypasses RLS)
-const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+async function getSupabase() {
+    if (supabaseClient) return supabaseClient;
+    
+    try {
+        const module = await import('@supabase/supabase-js');
+        createClientFn = module.createClient;
+        supabaseClient = createClientFn(
+            process.env.SUPABASE_URL,
+            process.env.SUPABASE_SERVICE_ROLE_KEY
+        );
+        console.log('[ADMIN] Supabase client initialized');
+        return supabaseClient;
+    } catch (error) {
+        console.error('[ADMIN] Failed to initialize Supabase:', error);
+        throw error;
+    }
+}
 
 // ============================================================
 // HELPERS
@@ -22,20 +34,13 @@ function logError(message, error) {
 }
 
 function getBaseUrl() {
-    // Priority: CUSTOM_DOMAIN > VERCEL_PROJECT_PRODUCTION_URL > VERCEL_URL > fallback
     const customDomain = process.env.CUSTOM_DOMAIN;
     const projectUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL;
     const vercelUrl = process.env.VERCEL_URL;
     
-    if (customDomain) {
-        return customDomain;
-    }
-    if (projectUrl) {
-        return projectUrl;
-    }
-    if (vercelUrl) {
-        return vercelUrl;
-    }
+    if (customDomain) return customDomain;
+    if (projectUrl) return projectUrl;
+    if (vercelUrl) return vercelUrl;
     return 'localhost:3000';
 }
 
@@ -49,9 +54,6 @@ function generateLinkIdentifier() {
 // HANDLERS
 // ============================================================
 
-// ============================================================
-// GET /config - Supabase config (CRITICAL for admin login)
-// ============================================================
 async function handleConfig(req, res) {
     try {
         log('Config request received');
@@ -67,8 +69,6 @@ async function handleConfig(req, res) {
             });
         }
 
-        log('Config returned successfully');
-
         return res.status(200).json({
             success: true,
             supabaseUrl: supabaseUrl,
@@ -83,9 +83,6 @@ async function handleConfig(req, res) {
     }
 }
 
-// ============================================================
-// GET /profile - Admin profile
-// ============================================================
 async function handleProfile(req, res) {
     try {
         log('Profile request received');
@@ -99,37 +96,20 @@ async function handleProfile(req, res) {
         }
 
         const token = authHeader.split(' ')[1];
-        if (!token) {
-            return res.status(401).json({ 
-                success: false, 
-                error: 'Unauthorized - Invalid token' 
-            });
-        }
-
-        log('Verifying user with token...');
+        const supabase = await getSupabase();
         
         const { data: { user }, error: authError } = await supabase.auth.getUser(token);
         
-        if (authError) {
+        if (authError || !user) {
             logError('Auth error:', authError);
             return res.status(401).json({ 
                 success: false, 
-                error: 'Unauthorized - ' + authError.message 
-            });
-        }
-
-        if (!user) {
-            log('No user found from token');
-            return res.status(401).json({ 
-                success: false, 
-                error: 'Unauthorized - User not found' 
+                error: 'Unauthorized' 
             });
         }
 
         log('User verified:', user.email);
-        log('User ID:', user.id);
 
-        // Query the admins table using service role (bypasses RLS)
         const { data: admin, error: adminError } = await supabase
             .from('admins')
             .select('*')
@@ -145,54 +125,25 @@ async function handleProfile(req, res) {
         }
 
         if (!admin) {
-            log('Admin not found for user ID:', user.id);
-            
-            // Try to find by email as fallback
-            log('Trying to find admin by email:', user.email);
             const { data: adminByEmail, error: emailError } = await supabase
                 .from('admins')
                 .select('*')
                 .eq('email', user.email)
                 .maybeSingle();
 
-            if (emailError) {
-                logError('Admin by email query error:', emailError);
-            }
-
             if (adminByEmail) {
-                log('Found admin by email:', adminByEmail.email);
-                log('Updating auth_user_id to match...');
-                
-                const { error: updateError } = await supabase
+                await supabase
                     .from('admins')
                     .update({ auth_user_id: user.id })
                     .eq('id', adminByEmail.id);
 
-                if (updateError) {
-                    logError('Failed to update auth_user_id:', updateError);
-                    return res.status(500).json({
-                        success: false,
-                        error: 'Failed to update admin record: ' + updateError.message
-                    });
-                }
-
-                const { data: updatedAdmin, error: refetchError } = await supabase
+                const { data: updatedAdmin } = await supabase
                     .from('admins')
                     .select('*')
                     .eq('id', adminByEmail.id)
                     .single();
 
-                if (refetchError) {
-                    logError('Refetch error:', refetchError);
-                    return res.status(500).json({
-                        success: false,
-                        error: 'Failed to fetch updated admin record: ' + refetchError.message
-                    });
-                }
-
-                log('Admin record updated successfully');
                 delete updatedAdmin.auth_user_id;
-
                 return res.status(200).json({
                     success: true,
                     data: updatedAdmin
@@ -201,19 +152,11 @@ async function handleProfile(req, res) {
 
             return res.status(404).json({ 
                 success: false, 
-                error: 'Admin account not found. Please contact support.',
-                debug: {
-                    user_id: user.id,
-                    user_email: user.email
-                }
+                error: 'Admin account not found' 
             });
         }
 
-        log('Admin found:', admin.email);
-
-        // Remove sensitive data before sending
         delete admin.auth_user_id;
-
         return res.status(200).json({
             success: true,
             data: admin
@@ -228,11 +171,6 @@ async function handleProfile(req, res) {
     }
 }
 
-// ============================================================
-// GET /links - List admin links
-// POST /links - Generate new link
-// DELETE /links/:id - Deactivate link
-// ============================================================
 async function handleLinks(req, res) {
     try {
         log('Links request received:', req.method);
@@ -246,6 +184,7 @@ async function handleLinks(req, res) {
         }
 
         const token = authHeader.split(' ')[1];
+        const supabase = await getSupabase();
         
         const { data: { user }, error: authError } = await supabase.auth.getUser(token);
         
@@ -256,8 +195,6 @@ async function handleLinks(req, res) {
                 error: 'Unauthorized' 
             });
         }
-
-        log('User verified for links:', user.email);
 
         const { data: admin, error: adminError } = await supabase
             .from('admins')
@@ -273,7 +210,6 @@ async function handleLinks(req, res) {
             });
         }
 
-        // GET - List links
         if (req.method === 'GET') {
             const { data: links, error: linksError } = await supabase
                 .from('admin_links')
@@ -289,10 +225,7 @@ async function handleLinks(req, res) {
                 });
             }
 
-            // Count active links
             const activeLinks = links ? links.filter(link => link.is_active === true).length : 0;
-
-            log('Links fetched:', links ? links.length : 0, 'Active:', activeLinks);
 
             return res.status(200).json({
                 success: true,
@@ -304,9 +237,7 @@ async function handleLinks(req, res) {
             });
         }
 
-        // POST - Generate new link
         if (req.method === 'POST') {
-            // Check current active links count
             const { data: existingLinks, error: countError } = await supabase
                 .from('admin_links')
                 .select('id')
@@ -324,10 +255,9 @@ async function handleLinks(req, res) {
             const activeCount = existingLinks ? existingLinks.length : 0;
 
             if (activeCount >= 2) {
-                log('Max links reached. Active:', activeCount);
                 return res.status(400).json({ 
                     success: false, 
-                    error: 'Maximum 2 active links allowed. Please deactivate a link first.',
+                    error: 'Maximum 2 active links allowed',
                     active_count: activeCount,
                     max_links: 2
                 });
@@ -335,8 +265,6 @@ async function handleLinks(req, res) {
 
             const { referral_name, referral_amount } = req.body || {};
             const linkId = generateLinkIdentifier();
-
-            log('Generating link with ID:', linkId);
 
             const { data: newLink, error: linkError } = await supabase
                 .from('admin_links')
@@ -362,8 +290,6 @@ async function handleLinks(req, res) {
             const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
             const applicationLink = `${protocol}://${baseUrl}/application.html?token=${linkId}`;
 
-            log('Generated link:', applicationLink);
-
             return res.status(200).json({
                 success: true,
                 data: {
@@ -379,9 +305,7 @@ async function handleLinks(req, res) {
             });
         }
 
-        // DELETE - Deactivate link
         if (req.method === 'DELETE') {
-            // Extract link ID from URL path
             const urlParts = req.url.split('/');
             const linkId = urlParts[urlParts.length - 1];
 
@@ -392,9 +316,6 @@ async function handleLinks(req, res) {
                 });
             }
 
-            log('Deactivating link:', linkId);
-
-            // Verify link belongs to this admin
             const { data: link, error: linkCheckError } = await supabase
                 .from('admin_links')
                 .select('*')
@@ -403,7 +324,6 @@ async function handleLinks(req, res) {
                 .single();
 
             if (linkCheckError || !link) {
-                logError('Link not found or unauthorized:', linkCheckError);
                 return res.status(404).json({ 
                     success: false, 
                     error: 'Link not found or unauthorized' 
@@ -434,25 +354,10 @@ async function handleLinks(req, res) {
                 });
             }
 
-            // Get updated active count
-            const { data: remainingLinks, error: countError } = await supabase
-                .from('admin_links')
-                .select('id')
-                .eq('admin_id', admin.id)
-                .eq('is_active', true);
-
-            const activeCount = remainingLinks ? remainingLinks.length : 0;
-
-            log('Link deactivated successfully. Active links remaining:', activeCount);
-
             return res.status(200).json({
                 success: true,
                 message: 'Link deactivated successfully',
-                data: {
-                    link_id: linkId,
-                    active_count: activeCount,
-                    max_links: 2
-                }
+                data: { link_id: linkId }
             });
         }
 
@@ -470,9 +375,6 @@ async function handleLinks(req, res) {
     }
 }
 
-// ============================================================
-// GET /applications - Recent applicants
-// ============================================================
 async function handleApplications(req, res) {
     try {
         log('Applications request received');
@@ -486,6 +388,7 @@ async function handleApplications(req, res) {
         }
 
         const token = authHeader.split(' ')[1];
+        const supabase = await getSupabase();
         
         const { data: { user }, error: authError } = await supabase.auth.getUser(token);
         
@@ -496,8 +399,6 @@ async function handleApplications(req, res) {
                 error: 'Unauthorized' 
             });
         }
-
-        log('User verified for applications:', user.email);
 
         const { data: admin, error: adminError } = await supabase
             .from('admins')
@@ -512,8 +413,6 @@ async function handleApplications(req, res) {
                 error: 'Admin not found' 
             });
         }
-
-        log('Fetching applications for admin:', admin.id);
 
         const { data: applications, error: appsError } = await supabase
             .from('grants_applications')
@@ -531,8 +430,6 @@ async function handleApplications(req, res) {
             });
         }
 
-        log('Applications fetched:', applications ? applications.length : 0);
-
         return res.status(200).json({ 
             success: true, 
             data: applications || [] 
@@ -547,15 +444,12 @@ async function handleApplications(req, res) {
     }
 }
 
-// ============================================================
-// POST /update-status - Update application status
-// ============================================================
 async function handleUpdateStatus(req, res) {
     try {
         log('Update status request received');
         
         const authHeader = req.headers.authorization;
-        if (!authHeader || !authHeader.startsWith('Bearer '')) {
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
             return res.status(401).json({ 
                 success: false, 
                 error: 'Unauthorized - No token provided' 
@@ -563,6 +457,7 @@ async function handleUpdateStatus(req, res) {
         }
 
         const token = authHeader.split(' ')[1];
+        const supabase = await getSupabase();
         
         const { data: { user }, error: authError } = await supabase.auth.getUser(token);
         
@@ -574,9 +469,6 @@ async function handleUpdateStatus(req, res) {
             });
         }
 
-        log('User verified for status update:', user.email);
-
-        // Verify admin exists
         const { data: admin, error: adminError } = await supabase
             .from('admins')
             .select('id')
@@ -593,32 +485,21 @@ async function handleUpdateStatus(req, res) {
 
         const { applicationId, status } = req.body;
 
-        if (!applicationId) {
+        if (!applicationId || !status) {
             return res.status(400).json({ 
                 success: false, 
-                error: 'Application ID is required' 
+                error: 'Application ID and status are required' 
             });
         }
 
-        if (!status) {
-            return res.status(400).json({ 
-                success: false, 
-                error: 'Status is required' 
-            });
-        }
-
-        // Valid statuses
         const validStatuses = ['pending', 'approved', 'rejected', 'paid'];
         if (!validStatuses.includes(status)) {
             return res.status(400).json({ 
                 success: false, 
-                error: 'Invalid status. Must be: pending, approved, rejected, or paid' 
+                error: 'Invalid status' 
             });
         }
 
-        log('Updating application:', applicationId, 'to status:', status);
-
-        // Update the application
         const { error: updateError } = await supabase
             .from('grants_applications')
             .update({ 
@@ -635,12 +516,9 @@ async function handleUpdateStatus(req, res) {
             });
         }
 
-        log('Application status updated successfully');
-
         return res.status(200).json({ 
             success: true, 
-            message: 'Status updated successfully',
-            data: { applicationId, status }
+            message: 'Status updated successfully'
         });
 
     } catch (error) {
@@ -657,7 +535,6 @@ async function handleUpdateStatus(req, res) {
 // ============================================================
 
 export default async function handler(req, res) {
-    // CORS
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
@@ -674,7 +551,6 @@ export default async function handler(req, res) {
 
         let handlerFn = null;
 
-        // Route based on exact path
         if (pathname === '/api/admin/config') {
             handlerFn = handleConfig;
         } else if (pathname === '/api/admin/profile') {
@@ -685,9 +561,6 @@ export default async function handler(req, res) {
             handlerFn = handleApplications;
         } else if (pathname === '/api/admin/update-status') {
             handlerFn = handleUpdateStatus;
-        } else if (pathname.startsWith('/api/admin/links/') && req.method === 'DELETE') {
-            // Handle DELETE /api/admin/links/:id
-            handlerFn = handleLinks;
         }
 
         if (!handlerFn) {
