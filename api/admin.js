@@ -1,15 +1,13 @@
 // api/admin.js
-// Handles ALL admin functions: config, profile, referral links, applications, update-status
+// Handles ALL admin functions: profile, links, applications, config, update-status
 
 import { createClient } from '@supabase/supabase-js';
 
-// ============================================================
-// ENVIRONMENT VARIABLES WITH SAFETY CHECKS
-// ============================================================
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-const SUPABASE_URL = process.env.SUPABASE_URL || null;
-const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || null;
-const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || null;
+// Create Supabase client with service role (bypasses RLS)
+const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
 // ============================================================
 // HELPERS
@@ -23,20 +21,28 @@ function logError(message, error) {
     console.error(`[ADMIN ERROR] ${message}`, error || '');
 }
 
-// Check if Supabase is configured
-function isSupabaseConfigured() {
-    return SUPABASE_URL && (SUPABASE_SERVICE_ROLE_KEY || SUPABASE_ANON_KEY);
+function getBaseUrl() {
+    // Priority: CUSTOM_DOMAIN > VERCEL_PROJECT_PRODUCTION_URL > VERCEL_URL > fallback
+    const customDomain = process.env.CUSTOM_DOMAIN;
+    const projectUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL;
+    const vercelUrl = process.env.VERCEL_URL;
+    
+    if (customDomain) {
+        return customDomain;
+    }
+    if (projectUrl) {
+        return projectUrl;
+    }
+    if (vercelUrl) {
+        return vercelUrl;
+    }
+    return 'localhost:3000';
 }
 
-// Get Supabase client
-function getSupabaseClient() {
-    if (!isSupabaseConfigured()) {
-        const missing = [];
-        if (!SUPABASE_URL) missing.push('SUPABASE_URL');
-        if (!SUPABASE_SERVICE_ROLE_KEY && !SUPABASE_ANON_KEY) missing.push('SUPABASE_SERVICE_ROLE_KEY or SUPABASE_ANON_KEY');
-        throw new Error('Supabase not configured. Missing: ' + missing.join(', '));
-    }
-    return createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY || SUPABASE_ANON_KEY);
+function generateLinkIdentifier() {
+    const timestamp = Date.now().toString(36);
+    const random = Math.random().toString(36).substring(2, 8).toUpperCase();
+    return 'LK-' + timestamp + '-' + random;
 }
 
 // ============================================================
@@ -50,45 +56,24 @@ async function handleConfig(req, res) {
     try {
         log('Config request received');
         
-        // Check environment variables
-        const envStatus = {
-            SUPABASE_URL: SUPABASE_URL ? '✅ Set' : '❌ Missing',
-            SUPABASE_SERVICE_ROLE_KEY: SUPABASE_SERVICE_ROLE_KEY ? '✅ Set' : '❌ Missing',
-            SUPABASE_ANON_KEY: SUPABASE_ANON_KEY ? '✅ Set' : '❌ Missing'
-        };
-        log('Environment status:', envStatus);
+        const supabaseUrl = process.env.SUPABASE_URL;
+        const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-        // If missing variables, return error but don't crash
-        if (!SUPABASE_URL) {
-            logError('SUPABASE_URL is missing');
-            return res.status(200).json({
+        if (!supabaseUrl || !supabaseAnonKey) {
+            logError('Missing Supabase configuration');
+            return res.status(500).json({
                 success: false,
-                error: 'SUPABASE_URL environment variable is not set in Vercel',
-                debug: envStatus
+                error: 'Supabase configuration missing'
             });
         }
 
-        if (!SUPABASE_ANON_KEY && !SUPABASE_SERVICE_ROLE_KEY) {
-            logError('No Supabase key provided');
-            return res.status(200).json({
-                success: false,
-                error: 'No Supabase key provided. Set SUPABASE_ANON_KEY or SUPABASE_SERVICE_ROLE_KEY.',
-                debug: envStatus
-            });
-        }
-
-        // Use anon key if available, otherwise service role key
-        const anonKey = SUPABASE_ANON_KEY || SUPABASE_SERVICE_ROLE_KEY;
-
-        log('Config returning successfully');
-        log('Supabase URL:', SUPABASE_URL);
+        log('Config returned successfully');
 
         return res.status(200).json({
             success: true,
-            supabaseUrl: SUPABASE_URL,
-            supabaseAnonKey: anonKey
+            supabaseUrl: supabaseUrl,
+            supabaseAnonKey: supabaseAnonKey
         });
-
     } catch (error) {
         logError('Config handler error:', error);
         return res.status(500).json({
@@ -121,20 +106,6 @@ async function handleProfile(req, res) {
             });
         }
 
-        // Check Supabase configuration
-        if (!isSupabaseConfigured()) {
-            const missing = [];
-            if (!SUPABASE_URL) missing.push('SUPABASE_URL');
-            if (!SUPABASE_SERVICE_ROLE_KEY && !SUPABASE_ANON_KEY) missing.push('SUPABASE_SERVICE_ROLE_KEY or SUPABASE_ANON_KEY');
-            logError('Supabase not configured:', missing);
-            return res.status(500).json({
-                success: false,
-                error: 'Supabase configuration missing: ' + missing.join(', ')
-            });
-        }
-
-        const supabase = getSupabaseClient();
-
         log('Verifying user with token...');
         
         const { data: { user }, error: authError } = await supabase.auth.getUser(token);
@@ -158,7 +129,7 @@ async function handleProfile(req, res) {
         log('User verified:', user.email);
         log('User ID:', user.id);
 
-        // Query the admins table
+        // Query the admins table using service role (bypasses RLS)
         const { data: admin, error: adminError } = await supabase
             .from('admins')
             .select('*')
@@ -221,7 +192,6 @@ async function handleProfile(req, res) {
 
                 log('Admin record updated successfully');
                 delete updatedAdmin.auth_user_id;
-                delete updatedAdmin.password_hash;
 
                 return res.status(200).json({
                     success: true,
@@ -243,7 +213,6 @@ async function handleProfile(req, res) {
 
         // Remove sensitive data before sending
         delete admin.auth_user_id;
-        delete admin.password_hash;
 
         return res.status(200).json({
             success: true,
@@ -260,7 +229,249 @@ async function handleProfile(req, res) {
 }
 
 // ============================================================
-// GET /applications - Applications assigned to this admin
+// GET /links - List admin links
+// POST /links - Generate new link
+// DELETE /links/:id - Deactivate link
+// ============================================================
+async function handleLinks(req, res) {
+    try {
+        log('Links request received:', req.method);
+        
+        const authHeader = req.headers.authorization;
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return res.status(401).json({ 
+                success: false, 
+                error: 'Unauthorized - No token provided' 
+            });
+        }
+
+        const token = authHeader.split(' ')[1];
+        
+        const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+        
+        if (authError || !user) {
+            logError('Auth error:', authError);
+            return res.status(401).json({ 
+                success: false, 
+                error: 'Unauthorized' 
+            });
+        }
+
+        log('User verified for links:', user.email);
+
+        const { data: admin, error: adminError } = await supabase
+            .from('admins')
+            .select('id')
+            .eq('auth_user_id', user.id)
+            .single();
+
+        if (adminError || !admin) {
+            logError('Admin not found:', adminError);
+            return res.status(404).json({ 
+                success: false, 
+                error: 'Admin not found' 
+            });
+        }
+
+        // GET - List links
+        if (req.method === 'GET') {
+            const { data: links, error: linksError } = await supabase
+                .from('admin_links')
+                .select('*')
+                .eq('admin_id', admin.id)
+                .order('created_at', { ascending: false });
+
+            if (linksError) {
+                logError('Links query error:', linksError);
+                return res.status(500).json({ 
+                    success: false, 
+                    error: linksError.message 
+                });
+            }
+
+            // Count active links
+            const activeLinks = links ? links.filter(link => link.is_active === true).length : 0;
+
+            log('Links fetched:', links ? links.length : 0, 'Active:', activeLinks);
+
+            return res.status(200).json({
+                success: true,
+                data: {
+                    links: links || [],
+                    active_count: activeLinks,
+                    max_links: 2
+                }
+            });
+        }
+
+        // POST - Generate new link
+        if (req.method === 'POST') {
+            // Check current active links count
+            const { data: existingLinks, error: countError } = await supabase
+                .from('admin_links')
+                .select('id')
+                .eq('admin_id', admin.id)
+                .eq('is_active', true);
+
+            if (countError) {
+                logError('Count error:', countError);
+                return res.status(500).json({ 
+                    success: false, 
+                    error: countError.message 
+                });
+            }
+
+            const activeCount = existingLinks ? existingLinks.length : 0;
+
+            if (activeCount >= 2) {
+                log('Max links reached. Active:', activeCount);
+                return res.status(400).json({ 
+                    success: false, 
+                    error: 'Maximum 2 active links allowed. Please deactivate a link first.',
+                    active_count: activeCount,
+                    max_links: 2
+                });
+            }
+
+            const { referral_name, referral_amount } = req.body || {};
+            const linkId = generateLinkIdentifier();
+
+            log('Generating link with ID:', linkId);
+
+            const { data: newLink, error: linkError } = await supabase
+                .from('admin_links')
+                .insert([{
+                    admin_id: admin.id,
+                    link_identifier: linkId,
+                    is_active: true,
+                    referral_name: referral_name || null,
+                    referral_amount: referral_amount || null
+                }])
+                .select()
+                .single();
+
+            if (linkError) {
+                logError('Link creation error:', linkError);
+                return res.status(500).json({ 
+                    success: false, 
+                    error: linkError.message 
+                });
+            }
+
+            const baseUrl = getBaseUrl();
+            const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
+            const applicationLink = `${protocol}://${baseUrl}/application.html?token=${linkId}`;
+
+            log('Generated link:', applicationLink);
+
+            return res.status(200).json({
+                success: true,
+                data: {
+                    link: applicationLink,
+                    link_id: newLink.id,
+                    link_identifier: linkId,
+                    referral_name: newLink.referral_name,
+                    referral_amount: newLink.referral_amount,
+                    created_at: newLink.created_at,
+                    active_count: activeCount + 1,
+                    max_links: 2
+                }
+            });
+        }
+
+        // DELETE - Deactivate link
+        if (req.method === 'DELETE') {
+            // Extract link ID from URL path
+            const urlParts = req.url.split('/');
+            const linkId = urlParts[urlParts.length - 1];
+
+            if (!linkId || linkId === 'links') {
+                return res.status(400).json({ 
+                    success: false, 
+                    error: 'Link ID is required' 
+                });
+            }
+
+            log('Deactivating link:', linkId);
+
+            // Verify link belongs to this admin
+            const { data: link, error: linkCheckError } = await supabase
+                .from('admin_links')
+                .select('*')
+                .eq('id', linkId)
+                .eq('admin_id', admin.id)
+                .single();
+
+            if (linkCheckError || !link) {
+                logError('Link not found or unauthorized:', linkCheckError);
+                return res.status(404).json({ 
+                    success: false, 
+                    error: 'Link not found or unauthorized' 
+                });
+            }
+
+            if (!link.is_active) {
+                return res.status(400).json({ 
+                    success: false, 
+                    error: 'Link is already inactive' 
+                });
+            }
+
+            const { error: updateError } = await supabase
+                .from('admin_links')
+                .update({ 
+                    is_active: false,
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', linkId)
+                .eq('admin_id', admin.id);
+
+            if (updateError) {
+                logError('Deactivation error:', updateError);
+                return res.status(500).json({ 
+                    success: false, 
+                    error: updateError.message 
+                });
+            }
+
+            // Get updated active count
+            const { data: remainingLinks, error: countError } = await supabase
+                .from('admin_links')
+                .select('id')
+                .eq('admin_id', admin.id)
+                .eq('is_active', true);
+
+            const activeCount = remainingLinks ? remainingLinks.length : 0;
+
+            log('Link deactivated successfully. Active links remaining:', activeCount);
+
+            return res.status(200).json({
+                success: true,
+                message: 'Link deactivated successfully',
+                data: {
+                    link_id: linkId,
+                    active_count: activeCount,
+                    max_links: 2
+                }
+            });
+        }
+
+        return res.status(405).json({ 
+            success: false, 
+            error: 'Method not allowed' 
+        });
+
+    } catch (error) {
+        logError('Links handler error:', error);
+        return res.status(500).json({
+            success: false,
+            error: error.message || 'Internal server error'
+        });
+    }
+}
+
+// ============================================================
+// GET /applications - Recent applicants
 // ============================================================
 async function handleApplications(req, res) {
     try {
@@ -276,16 +487,6 @@ async function handleApplications(req, res) {
 
         const token = authHeader.split(' ')[1];
         
-        if (!isSupabaseConfigured()) {
-            logError('Supabase not configured');
-            return res.status(500).json({
-                success: false,
-                error: 'Supabase configuration missing'
-            });
-        }
-
-        const supabase = getSupabaseClient();
-
         const { data: { user }, error: authError } = await supabase.auth.getUser(token);
         
         if (authError || !user) {
@@ -298,7 +499,6 @@ async function handleApplications(req, res) {
 
         log('User verified for applications:', user.email);
 
-        // Get admin ID
         const { data: admin, error: adminError } = await supabase
             .from('admins')
             .select('id')
@@ -315,12 +515,13 @@ async function handleApplications(req, res) {
 
         log('Fetching applications for admin:', admin.id);
 
-        // Get all applications assigned to this admin
         const { data: applications, error: appsError } = await supabase
             .from('grants_applications')
             .select('*')
-            .eq('assigned_admin_id', admin.id)
-            .order('created_at', { ascending: false });
+            .eq('admin_id', admin.id)
+            .eq('is_link_application', true)
+            .order('created_at', { ascending: false })
+            .limit(20);
 
         if (appsError) {
             logError('Applications query error:', appsError);
@@ -330,213 +531,15 @@ async function handleApplications(req, res) {
             });
         }
 
-        log('Applications found:', applications ? applications.length : 0);
-
-        // Get referral links count for this admin
-        const { count: referralCount, error: countError } = await supabase
-            .from('referral_links')
-            .select('*', { count: 'exact', head: true })
-            .eq('admin_id', admin.id);
-
-        if (countError) {
-            logError('Referral count error:', countError);
-        }
+        log('Applications fetched:', applications ? applications.length : 0);
 
         return res.status(200).json({ 
             success: true, 
-            data: {
-                applications: applications || [],
-                referral_count: referralCount || 0
-            }
+            data: applications || [] 
         });
 
     } catch (error) {
         logError('Applications handler error:', error);
-        return res.status(500).json({
-            success: false,
-            error: error.message || 'Internal server error'
-        });
-    }
-}
-
-// ============================================================
-// GET /referral-links - Get all referral links for this admin
-// ============================================================
-async function handleReferralLinks(req, res) {
-    try {
-        log('Referral links request received');
-        
-        const authHeader = req.headers.authorization;
-        if (!authHeader || !authHeader.startsWith('Bearer ')) {
-            return res.status(401).json({ 
-                success: false, 
-                error: 'Unauthorized - No token provided' 
-            });
-        }
-
-        const token = authHeader.split(' ')[1];
-        
-        if (!isSupabaseConfigured()) {
-            logError('Supabase not configured');
-            return res.status(500).json({
-                success: false,
-                error: 'Supabase configuration missing'
-            });
-        }
-
-        const supabase = getSupabaseClient();
-
-        const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-        
-        if (authError || !user) {
-            logError('Auth error:', authError);
-            return res.status(401).json({ 
-                success: false, 
-                error: 'Unauthorized' 
-            });
-        }
-
-        const { data: admin, error: adminError } = await supabase
-            .from('admins')
-            .select('id')
-            .eq('auth_user_id', user.id)
-            .single();
-
-        if (adminError || !admin) {
-            logError('Admin not found:', adminError);
-            return res.status(404).json({ 
-                success: false, 
-                error: 'Admin not found' 
-            });
-        }
-
-        const { data: links, error: linksError } = await supabase
-            .from('referral_links')
-            .select('*')
-            .eq('admin_id', admin.id)
-            .order('created_at', { ascending: false });
-
-        if (linksError) {
-            logError('Referral links query error:', linksError);
-            return res.status(500).json({ 
-                success: false, 
-                error: linksError.message 
-            });
-        }
-
-        return res.status(200).json({
-            success: true,
-            data: links || []
-        });
-
-    } catch (error) {
-        logError('Referral links handler error:', error);
-        return res.status(500).json({
-            success: false,
-            error: error.message || 'Internal server error'
-        });
-    }
-}
-
-// ============================================================
-// POST /referral-links - Generate a new referral link
-// ============================================================
-async function handleCreateReferral(req, res) {
-    try {
-        log('Create referral link request received');
-        
-        const authHeader = req.headers.authorization;
-        if (!authHeader || !authHeader.startsWith('Bearer ')) {
-            return res.status(401).json({ 
-                success: false, 
-                error: 'Unauthorized - No token provided' 
-            });
-        }
-
-        const token = authHeader.split(' ')[1];
-        
-        if (!isSupabaseConfigured()) {
-            logError('Supabase not configured');
-            return res.status(500).json({
-                success: false,
-                error: 'Supabase configuration missing'
-            });
-        }
-
-        const supabase = getSupabaseClient();
-
-        const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-        
-        if (authError || !user) {
-            logError('Auth error:', authError);
-            return res.status(401).json({ 
-                success: false, 
-                error: 'Unauthorized' 
-            });
-        }
-
-        const { data: admin, error: adminError } = await supabase
-            .from('admins')
-            .select('id, full_name')
-            .eq('auth_user_id', user.id)
-            .single();
-
-        if (adminError || !admin) {
-            logError('Admin not found:', adminError);
-            return res.status(404).json({ 
-                success: false, 
-                error: 'Admin not found' 
-            });
-        }
-
-        const { referral_name, referral_amount } = req.body || {};
-        
-        // Generate unique link identifier
-        const linkId = 'REF-' + Date.now().toString(36).toUpperCase() + '-' + Math.random().toString(36).substring(2, 8).toUpperCase();
-
-        log('Generating referral link:', linkId);
-
-        const { data: newLink, error: linkError } = await supabase
-            .from('referral_links')
-            .insert([{
-                admin_id: admin.id,
-                link_identifier: linkId,
-                referral_name: referral_name || null,
-                referral_amount: referral_amount || null,
-                is_used: false,
-                created_at: new Date().toISOString()
-            }])
-            .select()
-            .single();
-
-        if (linkError) {
-            logError('Referral link creation error:', linkError);
-            return res.status(500).json({ 
-                success: false, 
-                error: linkError.message 
-            });
-        }
-
-        // Build the full URL
-        const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
-        const host = req.headers.host || 'localhost:3000';
-        const linkUrl = `${protocol}://${host}/application.html?ref=${linkId}`;
-
-        log('Generated referral link:', linkUrl);
-
-        return res.status(200).json({
-            success: true,
-            data: {
-                link: linkUrl,
-                link_identifier: linkId,
-                referral_name: referral_name || null,
-                referral_amount: referral_amount || null,
-                created_at: newLink.created_at
-            }
-        });
-
-    } catch (error) {
-        logError('Create referral handler error:', error);
         return res.status(500).json({
             success: false,
             error: error.message || 'Internal server error'
@@ -561,16 +564,6 @@ async function handleUpdateStatus(req, res) {
 
         const token = authHeader.split(' ')[1];
         
-        if (!isSupabaseConfigured()) {
-            logError('Supabase not configured');
-            return res.status(500).json({
-                success: false,
-                error: 'Supabase configuration missing'
-            });
-        }
-
-        const supabase = getSupabaseClient();
-
         const { data: { user }, error: authError } = await supabase.auth.getUser(token);
         
         if (authError || !user) {
@@ -580,6 +573,8 @@ async function handleUpdateStatus(req, res) {
                 error: 'Unauthorized' 
             });
         }
+
+        log('User verified for status update:', user.email);
 
         // Verify admin exists
         const { data: admin, error: adminError } = await supabase
@@ -621,28 +616,7 @@ async function handleUpdateStatus(req, res) {
             });
         }
 
-        // Verify this application belongs to this admin
-        const { data: appCheck, error: checkError } = await supabase
-            .from('grants_applications')
-            .select('id, assigned_admin_id')
-            .eq('id', applicationId)
-            .single();
-
-        if (checkError || !appCheck) {
-            logError('Application not found:', checkError);
-            return res.status(404).json({ 
-                success: false, 
-                error: 'Application not found' 
-            });
-        }
-
-        if (appCheck.assigned_admin_id !== admin.id) {
-            logError('Admin not authorized to update this application');
-            return res.status(403).json({ 
-                success: false, 
-                error: 'You are not authorized to update this application' 
-            });
-        }
+        log('Updating application:', applicationId, 'to status:', status);
 
         // Update the application
         const { error: updateError } = await supabase
@@ -685,7 +659,7 @@ async function handleUpdateStatus(req, res) {
 export default async function handler(req, res) {
     // CORS
     res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
     if (req.method === 'OPTIONS') {
@@ -693,32 +667,27 @@ export default async function handler(req, res) {
     }
 
     try {
-        // Clean up the URL path for consistent routing
-        let pathname = req.url;
-        // Remove query parameters
-        if (pathname.includes('?')) {
-            pathname = pathname.split('?')[0];
-        }
+        const url = new URL(req.url, `http://${req.headers.host}`);
+        const pathname = url.pathname;
 
         console.log(`📥 [ADMIN] ${req.method} ${pathname}`);
 
         let handlerFn = null;
 
         // Route based on exact path
-        if (pathname === '/api/admin/config' || pathname === '/admin/config') {
+        if (pathname === '/api/admin/config') {
             handlerFn = handleConfig;
-        } else if (pathname === '/api/admin/profile' || pathname === '/admin/profile') {
+        } else if (pathname === '/api/admin/profile') {
             handlerFn = handleProfile;
-        } else if (pathname === '/api/admin/applications' || pathname === '/admin/applications') {
+        } else if (pathname === '/api/admin/links') {
+            handlerFn = handleLinks;
+        } else if (pathname === '/api/admin/applications') {
             handlerFn = handleApplications;
-        } else if (pathname === '/api/admin/referral-links' || pathname === '/admin/referral-links') {
-            if (req.method === 'GET') {
-                handlerFn = handleReferralLinks;
-            } else if (req.method === 'POST') {
-                handlerFn = handleCreateReferral;
-            }
-        } else if (pathname === '/api/admin/update-status' || pathname === '/admin/update-status') {
+        } else if (pathname === '/api/admin/update-status') {
             handlerFn = handleUpdateStatus;
+        } else if (pathname.startsWith('/api/admin/links/') && req.method === 'DELETE') {
+            // Handle DELETE /api/admin/links/:id
+            handlerFn = handleLinks;
         }
 
         if (!handlerFn) {
